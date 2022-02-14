@@ -25,11 +25,22 @@ class State(Campaign):
         self.budget_allocation = {}
 
     def get_timestamp_budget(self):
+        #think about it more
         self.current_time +=1
         self.current_budget = self.budget/self.time
 
+    def initial_allocation(self):
+        #returns a dict 
+        for campaign in self.campaigns:
+            self.budget_allocation[campaign.id] = 1/len(self.campaigns)
+        return self.budget_allocation
+
     def get_budget_allocation(self):
         #returns a dictionary with the budget allocation
-        for campaign in self.campaigns:
-            self.budget_allocation[campaign.id] = campaign.budget / self.current_budget
+        if self.current_time == 0:
+            self.initial_allocation()
+        else:
+            for campaign in self.campaigns:
+                self.budget_allocation[campaign.id] = campaign.budget / self.current_budget
+        return self.budget_allocation
 
