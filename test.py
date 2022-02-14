@@ -14,3 +14,4 @@ print(current_state.campaigns)
 print(current_state.get_budget_allocation())
 
 campaign1.change_budget(10)
+print(campaign1.budget)
