@@ -43,4 +43,8 @@ class State(Campaign):
             for campaign in self.campaigns:
                 self.budget_allocation[campaign.id] = campaign.budget / self.current_budget
         return self.budget_allocation
+    
+    def allocate_budget(self):
+        #changes campaign.budget depending on this timestamp budget and the % budget_allocation
+        pass
 
