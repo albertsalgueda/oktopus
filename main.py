@@ -17,13 +17,19 @@ class Campaign():
 
 class State(Campaign):
 
-    def __init__(self,budget,time,campaigns):
+    def __init__(self,budget,total_time,campaigns):
         self.budget = budget
-        self.time = time
+        self.time = total_time
         self.campaigns = campaigns
+        self.current_time = 0
         self.budget_allocation = {}
+
+    def get_timestamp_budget(self):
+        self.current_time +=1
+        self.current_budget = self.budget/self.time
 
     def get_budget_allocation(self):
         #returns a dictionary with the budget allocation
-        for campaign in campaigns:
+        for campaign in self.campaigns:
+            self.budget_allocation[campaign.id] = campaign.budget / self.current_budget
 
