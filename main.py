@@ -1,4 +1,3 @@
-
 class Campaign():
 
     def __init__(self,id,budget,spent,impressions,conversions,roi):
@@ -48,8 +47,15 @@ class State(Campaign):
         #returns a set of available actions given a particular state
         pass
     
+    @classmethod
+    def validate_budget(self,budget_allocation):
+        #total budget allocation cannot surpass b 
+        #returns True if it's valid
+        #returns False if it's not valid
+        pass
+    
     def allocate_budget(self):
         #changes campaign.budget depending on this timestamp budget and the % budget_allocation
         #calls available actions and takes the best one
+        #total budget allocation cannot surpass b 
         pass
-
