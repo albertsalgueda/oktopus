@@ -30,12 +30,12 @@ class State(Campaign):
         self.current_budget = self.budget/self.time
 
     def initial_allocation(self):
-        #returns a dict 
+        #returns a dict with a proportional allocation
         for campaign in self.campaigns:
             self.budget_allocation[campaign.id] = 1/len(self.campaigns)
         return self.budget_allocation
 
-    def get_budget_allocation(self):
+    def get_state(self):
         #returns a dictionary with the budget allocation
         if self.current_time == 0:
             self.initial_allocation()
@@ -43,8 +43,13 @@ class State(Campaign):
             for campaign in self.campaigns:
                 self.budget_allocation[campaign.id] = campaign.budget / self.current_budget
         return self.budget_allocation
+
+    def available_actions(self):
+        #returns a set of available actions given a particular state
+        pass
     
     def allocate_budget(self):
         #changes campaign.budget depending on this timestamp budget and the % budget_allocation
+        #calls available actions and takes the best one
         pass
 
