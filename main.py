@@ -49,7 +49,7 @@ class State(Campaign):
     
     @classmethod
     def validate_budget(self,budget_allocation):
-        #total budget allocation cannot surpass b 
+        #total budget allocation cannot surpass 1
         #returns True if it's valid
         #returns False if it's not valid
         pass
