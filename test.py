@@ -11,7 +11,8 @@ campaigns = [campaign1,campaign2]
 current_state = State(50,100,campaigns)
 
 print(current_state.campaigns)
-print(current_state.get_budget_allocation())
+print(current_state.get_state())
+print(current_state.initial_allocation())
 
 campaign1.change_budget(10)
 print(campaign1.budget)
