@@ -1,6 +1,6 @@
-python 3.8
+python==3.8
 math 
 numpy
 pandas
-tensorflow 2.8.0
+tensorflow==2.8.0
 matplotlib

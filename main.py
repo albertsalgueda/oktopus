@@ -70,34 +70,71 @@ class State(Campaign):
         pass
 
 class AI(State):
-    def __init__(self,state,state_size,actions, model_name = 'Oktopus'):
+    def __init__(self,state,state_size,action_space, model_name = 'Oktopus 1.0'):
         self.state = state
-        self.actions = actions
+        self.action_space = action_space
         self.state_size = state_size
 
         self.model_name = model_name
         self.memory = deque(maxlen=200)
-        self.gamma = 0.95
-        self.epsilon = 1.0
+        self.gamma = 0.95  #learning rate 
+        self.epsilon = 1.0 #randomness of actions
         self.epsilon_final = 0.01
         self.epsilon_decay = 0.995
     
         self.model = self.model_builder()
     
     def model_builder(self):
+        #define the sequential deep neural network
+
         model = tf.keras.models.Sequential()
     
         model.add(tf.keras.layers.Dense(units=32, activation='relu', input_dim=self.state_size))
     
         model.add(tf.keras.layers.Dense(units=64, activation='relu'))
     
-        model.add(tf.keras.layers.Dense(units=128, activation='relu'))
+        #model.add(tf.keras.layers.Dense(units=128, activation='relu'))
     
         model.add(tf.keras.layers.Dense(units=self.action_space, activation='linear'))
     
         model.compile(loss='mse', optimizer=tf.keras.optimizers.Adam(lr=0.001))
-    
+        #return the compiled model
         return model
     
-    def take_action(self,state,action):
-        pass
+    def take_action(self,state):
+        if random.random() <= self.epsilon:
+            #take a random action. 
+            # if epsilon=1, always take a random action
+            # as epsilon decrease to 1%, only 1% of random actions            
+            return random.randrange(self.action_space)
+        #if we don't take a random action
+        #predict best actions
+        actions = self.model.predict(state)
+        #will return up to 3 bes possible actions, we'll return the best 
+        return np.argmax(actions[0])
+
+    def batch_train(self, batch_size):
+        #barch_size --> number of the block of information we want to train 
+        #initialize an empty train batch
+        batch = []
+        #experience replay
+        for i in range(len(self.memory) - batch_size + 1, len(self.memory)):
+            #take the last positions of the memory ( most recent )
+            batch.append(self.memory[i])
+        #itero entre todas las possibles actiones y estados en la memoria 
+        for state, action, reward, next_state, done in batch:
+            reward = reward
+            #if the agent didn't finish --> we still have Budget 
+            if not done:
+                #we apply the Bellman equation
+                #gamma is a discount factor applied to the best possible resultant state
+                reward = reward + self.gamma * np.amax(self.model.predict(next_state)[0])
+    
+        target = self.model.predict(state)
+        #for the action that the agent took, I assign the reward calculated previously
+        target[0][action] = reward
+        #fit new information into the model
+        self.model.fit(state, target, epochs=1, verbose=0)
+        #decrement epsilon 
+        if self.epsilon > self.epsilon_final:
+            self.epsilon *= self.epsilon_decay
