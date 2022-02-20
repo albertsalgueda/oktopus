@@ -71,6 +71,7 @@ class State(Campaign):
         pass
 
 class AI(State):
+    
     def __init__(self,state,state_size,action_space, model_name = 'Oktopus 1.0'):
         self.state = state
         self.action_space = action_space
