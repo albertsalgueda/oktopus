@@ -70,9 +70,10 @@ class State(Campaign):
         pass
 
 class AI(State):
-    def __init__(self,state,actions, model_name = 'Oktopus'):
+    def __init__(self,state,state_size,actions, model_name = 'Oktopus'):
         self.state = state
         self.actions = actions
+        self.state_size = state_size
 
         self.model_name = model_name
         self.memory = deque(maxlen=200)
