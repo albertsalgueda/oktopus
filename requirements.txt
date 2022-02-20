@@ -1,1 +1,6 @@
 python 3.8
+math 
+numpy
+pandas
+tensorflow
+matplotlib
