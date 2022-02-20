@@ -2,5 +2,5 @@ python 3.8
 math 
 numpy
 pandas
-tensorflow
+tensorflow 2.8.0
 matplotlib
