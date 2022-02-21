@@ -1,6 +1,4 @@
-python==3.8
-math 
-numpy
-pandas
 tensorflow==2.8.0
-matplotlib
+numpy==1.22.2
+pandas==1.4.1
+matplotlib==3.5.1

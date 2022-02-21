@@ -31,12 +31,15 @@ class State(Campaign):
         self.time = total_time
         self.campaigns = campaigns
         self.current_time = 0
-        self.budget_allocation = {}
-
-    def get_timestamp_budget(self):
-        #think about it more
-        self.current_time +=1
         self.current_budget = self.budget/self.time
+        self.budget_allocation = {}
+        self.remaining = budget
+
+    def next_timestamp(self):
+        #think about it more...
+        self.current_time +=1
+        self.remaining-=self.current_budget
+        return(self.remaining)
 
     def initial_allocation(self):
         #returns a dict with a proportional allocation
@@ -48,6 +51,7 @@ class State(Campaign):
         #returns a dictionary with the budget allocation
         if self.current_time == 0:
             self.initial_allocation()
+            self.allocate_budget()
         else:
             for campaign in self.campaigns:
                 self.budget_allocation[campaign.id] = campaign.budget / self.current_budget
@@ -65,10 +69,10 @@ class State(Campaign):
         pass
     
     def allocate_budget(self):
-        #changes campaign.budget depending on this timestamp budget and the % budget_allocation
-        #calls available actions and takes the best one
-        #total budget allocation cannot surpass b 
-        pass
+        #campaign budget = current budget * campaign%allocation
+        for campaign in self.campaigns:
+            campaign.budget = round(self.current_budget*self.budget_allocation[campaign.id],2)
+
 
 class AI(State):
     
