@@ -26,7 +26,7 @@ while campaign_group.remaining > 0:
     print('###########################################')
     print(f'Budget at timestamp {campaign_group.current_time} is {campaign_group.current_budget}')
     budget_printer(campaign_group)
-    print(f'Remaining budget:{campaign_group.next_timestamp()}')
+    print(f'Remaining budget: {campaign_group.next_timestamp()}')
     print(f'Available actions at timestamp {campaign_group.current_time}')
     #show the list of available actions
     action = input("Take an action, press enter for no action")
