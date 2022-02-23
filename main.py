@@ -41,6 +41,9 @@ class State(Campaign):
         self.budget_allocation = {}
         self.remaining = budget
 
+        self.step = 0.01
+        self.max_steps = 5
+
     def next_timestamp(self):
         #think about it more...
         self.current_time +=1
@@ -63,16 +66,27 @@ class State(Campaign):
                 self.budget_allocation[campaign.id] = campaign.budget / self.current_budget
         return self.budget_allocation
 
-    def available_actions(self):
+    @classmethod
+    def available_actions(budget_allocation):
         #returns a set of available actions given a particular state
-        pass
+        #action is a tupple of n campaigns lenght
+        #EX: if campaigns = 2 then action (x,y) will represent the change on each campaign respectevely
+        #EX: for n campaigns action (n1,n2...n)
+        actions = set()
+        for campaign in enumerate(budget_allocation):
+            pass
     
     @classmethod
-    def validate_budget(self,budget_allocation):
+    def validate_budget(budget_allocation):
         #total budget allocation cannot surpass 1
         #returns True if it's valid
         #returns False if it's not valid
-        pass
+        total = 0
+        for campaign in budget_allocation:
+            total += budget_allocation[campaign] 
+        if total > 1: return False
+        return True
+        
     
     def allocate_budget(self):
         #campaign budget = current budget * campaign%allocation
