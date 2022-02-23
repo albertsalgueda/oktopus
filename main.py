@@ -67,11 +67,13 @@ class State(Campaign):
         return self.budget_allocation
 
     @classmethod
-    def available_actions(budget_allocation):
+    def available_actions(budget_allocation,step,max_step):
         #returns a set of available actions given a particular state
         #action is a tupple of n campaigns lenght
         #EX: if campaigns = 2 then action (x,y) will represent the change on each campaign respectevely
         #EX: for n campaigns action (n1,n2...n)
+        #el step es el nivel de cambio permitido step=0.01 por defecto
+        #max_step el numero de steps permitidos, si max_step es 5 maximo se puede incrementar un 5%
         actions = set()
         for campaign in enumerate(budget_allocation):
             pass
