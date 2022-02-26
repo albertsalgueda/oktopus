@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
+from itertools import combinations
 
 def sigmoid(x):
   return 1 / (1 + math.exp(-x))
@@ -66,28 +67,72 @@ class State(Campaign):
                 self.budget_allocation[campaign.id] = campaign.budget / self.current_budget
         return self.budget_allocation
 
-    @classmethod
-    def available_actions(budget_allocation,step,max_step):
+    @staticmethod
+    def available_actions(budget_distribution,step,max_step):
         #returns a set of available actions given a particular state
         #action is a tupple of n campaigns lenght
         #EX: if campaigns = 2 then action (x,y) will represent the change on each campaign respectevely
         #EX: for n campaigns action (n1,n2...n)
         #el step es el nivel de cambio permitido step=0.01 por defecto
         #max_step el numero de steps permitidos, si max_step es 5 maximo se puede incrementar un 5%
-        actions = set()
-        for campaign in enumerate(budget_allocation):
-            pass
-    
-    @classmethod
-    def validate_budget(budget_allocation):
+        # actions = set()
+        def validate_budget(budget_allocation):
         #total budget allocation cannot surpass 1
         #returns True if it's valid
         #returns False if it's not valid
-        total = 0
-        for campaign in budget_allocation:
-            total += budget_allocation[campaign] 
-        if total > 1: return False
-        return True
+            total = 0
+            for campaign in budget_allocation:
+                total += campaign
+            if total != 1: return False
+            return True
+
+        minimal_change_reallocation = step
+        maximal_change_reallocation = max_step
+        # max percentage of change from an iteration
+        amount_campaigns = len(budget_distribution)
+
+        # we have to get the current budget allocation as a list such that //
+        # budget_allocation[0] is budget campaign 1, budget_allocation[1] es budget campaign 2, etc
+        # something like this:
+
+        budget_allocation = list(budget_distribution.values())
+
+        # creation of a list that contains all possible values of change that can be applied to each campaign
+        possible_budget_reallocation_units = [1]
+
+        # we define it, and now we fulfill it with this loop
+
+        for i in range(int(maximal_change_reallocation / minimal_change_reallocation) + 1):
+            positive_change = 1 + (i + 1) * minimal_change_reallocation
+            possible_budget_reallocation_units.append(positive_change)
+            negative_change = 1 - (i + 1) * minimal_change_reallocation
+            possible_budget_reallocation_units.append(negative_change)
+
+        # creation of a list that contains all possible paradigms of change regarding all campaigns //
+        # note that every possible paradigm of change is a list such that
+        # list[0] is change in campaign 1, list[1] is change in campaign 2, etc
+
+        possible_budget_reallocation = []
+
+        temp = combinations(possible_budget_reallocation_units, amount_campaigns)
+        for i in list(temp):
+            if sum(list(i)) == amount_campaigns:
+                possible_budget_reallocation.append(list(i))
+
+        # creation of a list (all available actions than could be reached) that combines our actual distribution
+        # with all the possible paradigms of change we obtained with possible_budget_reallocation
+
+        possible_scenarios = []
+
+        for possible_case in possible_budget_reallocation:
+            new_distribution = []
+            for i in range(len(possible_case)):
+                new_distribution.append(budget_allocation[i] * possible_case[i])
+            if validate_budget(new_distribution):
+                possible_scenarios.append(new_distribution)
+
+        return possible_scenarios
+    
         
     
     def allocate_budget(self):

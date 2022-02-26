@@ -10,9 +10,9 @@ campaigns = [campaign1,campaign2]
 
 current_state = State(50,100,campaigns)
 
-print(current_state.campaigns)
-print(current_state.get_state())
-print(current_state.initial_allocation())
+a= {"1": 0.5,"2":0.5}
+
+print(current_state.available_actions(a, 0.01,0.05))
 
 campaign1.change_budget(10)
 print(campaign1.budget)
