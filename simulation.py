@@ -31,7 +31,6 @@ while campaign_group.remaining > 0:
     print(actions)
     #action = int(input("Take an action: "))
     action = campaign_group.take_action()
-    print(f'You took action: {action}')
     for campaign in campaign_group.campaigns:
         print(f'Introduce new data for campaign {campaign.id}')
         data = str(input("new Impresions, new Conversions and new ROI respectively separated with a comma: "))

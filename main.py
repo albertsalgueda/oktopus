@@ -66,6 +66,7 @@ class State(Campaign):
         current_roi = sum([campaign.roi for campaign in self.campaigns])
         past_roi = self.history[self.current_time-1][1]
         reward = current_roi-past_roi
+        print(f'The reward for the current timestamp is {reward}')
         return reward
 
     def take_action(self):
