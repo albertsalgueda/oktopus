@@ -10,6 +10,10 @@ def budget_printer(campaign_group):
         print(f'{campaign} has {campaign_group.campaigns[i].roi} ROI')
         i +=1
 
+
+def generate_values():
+    pass
+
 print('Welcome to the simulation of Oktopus ;)')
 print('We created group of 3 init campaigns for you already')
 
