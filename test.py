@@ -1,18 +1,18 @@
-from main import Campaign,State
+from main import Campaign,State,AI
 
 #we should do the testing here
 #i'll start manually but we should automate it
 
 campaign1 = Campaign(1,0,0,0,0,0)
 campaign2 = Campaign(2,0,0,0,0,0)
+campaign3 = Campaign(3,0,0,0,0,0)
 
-campaigns = [campaign1,campaign2]
+campaigns = [campaign1,campaign2,campaign3]
 
-current_state = State(50,100,campaigns)
+oktopus = AI()
+current_state = State(50,100,campaigns,oktopus)
 
-a= {"1": 0.5,"2":0.5}
+current_state.allocation()
 
-print(current_state.available_actions(a, 0.01,0.05))
+print(current_state.get_state())
 
-campaign1.change_budget(10)
-print(campaign1.budget)

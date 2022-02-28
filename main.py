@@ -1,10 +1,11 @@
+from logging import raiseExceptions
 import math
 import random
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from itertools import combinations
+from itertools import combinations, permutations
 
 def sigmoid(x):
   return 1 / (1 + math.exp(-x))
@@ -33,61 +34,92 @@ class Campaign():
 
 class State(Campaign):
 
-    def __init__(self,budget,total_time,campaigns):
+    def __init__(self,budget,total_time,campaigns,algorithm):
         self.budget = budget
         self.time = total_time
         self.campaigns = campaigns
         self.current_time = 0
         self.current_budget = self.budget/self.time
+        #dictionary that contains all states, where the key is a timestamp
+        self.history = {}
         self.budget_allocation = {}
         self.remaining = budget
+        self.oktopus = algorithm
 
         self.step = 0.01
         self.max_steps = 5
 
-    def next_timestamp(self):
-        #think about it more...
-        self.current_time +=1
+    def next_timestamp(self,action):
+        self.current_time += 1
         self.remaining-=self.current_budget
+        reward = self.get_reward()
+        old_state = self.get_state(self.history[self.current_time-1][0])
+        new_state = self.get_state(self.budget_allocation)
+        self.oktopus.update(old_state, action, new_state, reward)
         return(self.remaining)
+
+    def get_reward(self):
+        #computes the reward for taking action a in state s
+        #serà la suma de los rois actuales - los rois antiguos --> si han aumentado, positiva sino punishment
+        if self.current_time == 0:
+            return 0
+        current_roi = sum([campaign.roi for campaign in self.campaigns])
+        past_roi = self.history[self.current_time-1][1]
+        reward = current_roi-past_roi
+        return reward
+
+    def take_action(self):
+        #given an action (i,j...), changes budget allocation
+        #stores old state
+        self.history[self.current_time] = (self.budget_allocation,self.get_reward())
+        #creates new state
+        print("AI is taking an action...")
+        action = self.oktopus.choose_action(self.get_state(self.budget_allocation))
+        print(f'AI took action {action}')
+        i = 0
+        for value in self.budget_allocation:
+            self.budget_allocation[value] *= action[i]
+            i += 1
+        self.allocate_budget()
+        return action
+
+    @staticmethod        
+    def get_state(budget_allocation):
+        return tuple(budget_allocation.values())
 
     def initial_allocation(self):
         #returns a dict with a proportional allocation
         for campaign in self.campaigns:
             self.budget_allocation[campaign.id] = 1/len(self.campaigns)
+        self.allocate_budget()
         return self.budget_allocation
 
-    def get_state(self):
+    def allocation(self):
         #returns a dictionary with the budget allocation
         if self.current_time == 0:
             self.initial_allocation()
+            self.history[self.current_time] = (self.budget_allocation,self.get_reward())
             self.allocate_budget()
+            return self.budget_allocation
         else:
-            for campaign in self.campaigns:
-                self.budget_allocation[campaign.id] = campaign.budget / self.current_budget
-        return self.budget_allocation
+            return self.budget_allocation
+
+    def allocate_budget(self):
+        #turns a distribution into a value
+        #campaign budget = current budget * campaign%allocation
+        for campaign in self.campaigns:
+            campaign.budget = round(self.current_budget*self.budget_allocation[campaign.id],2)
 
     @staticmethod
-    def available_actions(budget_distribution,step,max_step):
+    def available_actions(budget_distribution):
         #returns a set of available actions given a particular state
         #action is a tupple of n campaigns lenght
         #EX: if campaigns = 2 then action (x,y) will represent the change on each campaign respectevely
         #EX: for n campaigns action (n1,n2...n)
         #el step es el nivel de cambio permitido step=0.01 por defecto
         #max_step el numero de steps permitidos, si max_step es 5 maximo se puede incrementar un 5%
-        # actions = set()
-        def validate_budget(budget_allocation):
-        #total budget allocation cannot surpass 1
-        #returns True if it's valid
-        #returns False if it's not valid
-            total = 0
-            for campaign in budget_allocation:
-                total += campaign
-            if total != 1: return False
-            return True
-
-        minimal_change_reallocation = step
-        maximal_change_reallocation = max_step
+        step = 0.01    
+        max_step = 0.05
         # max percentage of change from an iteration
         amount_campaigns = len(budget_distribution)
 
@@ -95,55 +127,171 @@ class State(Campaign):
         # budget_allocation[0] is budget campaign 1, budget_allocation[1] es budget campaign 2, etc
         # something like this:
 
-        budget_allocation = list(budget_distribution.values())
+        budget_allocation = list(budget_distribution)
 
         # creation of a list that contains all possible values of change that can be applied to each campaign
-        possible_budget_reallocation_units = [1]
+        possible_budget_reallocation_units = [0]
 
         # we define it, and now we fulfill it with this loop
 
-        for i in range(int(maximal_change_reallocation / minimal_change_reallocation) + 1):
-            positive_change = 1 + (i + 1) * minimal_change_reallocation
-            possible_budget_reallocation_units.append(positive_change)
-            negative_change = 1 - (i + 1) * minimal_change_reallocation
-            possible_budget_reallocation_units.append(negative_change)
+        for i in range(int(max_step / step)):
+            possible_budget_reallocation_units.append((i + 1) * step)
+            possible_budget_reallocation_units.append(-(i + 1) * step)
 
         # creation of a list that contains all possible paradigms of change regarding all campaigns //
         # note that every possible paradigm of change is a list such that
         # list[0] is change in campaign 1, list[1] is change in campaign 2, etc
 
-        possible_budget_reallocation = []
+        no_change_option = []
+        for i in range(amount_campaigns):
+            no_change_option.append(0)
+
+        possible_budget_reallocation = [tuple(no_change_option)]
 
         temp = combinations(possible_budget_reallocation_units, amount_campaigns)
-        for i in list(temp):
-            if sum(list(i)) == amount_campaigns:
-                possible_budget_reallocation.append(list(i))
+        for combination in list(temp):
+            if sum(list(combination)) == 0:
+                possible_permutations = list(permutations(list(combination)))
+                possible_budget_reallocation.extend(possible_permutations)
 
-        # creation of a list (all available actions than could be reached) that combines our actual distribution
-        # with all the possible paradigms of change we obtained with possible_budget_reallocation
+        possible_actions = set()
 
-        possible_scenarios = []
+        for action in possible_budget_reallocation:
+            new = []
+            for item in action:
+                item += 1
+                new.append(item)
+            possible_actions.add(tuple(new))
 
-        for possible_case in possible_budget_reallocation:
-            new_distribution = []
-            for i in range(len(possible_case)):
-                new_distribution.append(budget_allocation[i] * possible_case[i])
-            if validate_budget(new_distribution):
-                possible_scenarios.append(new_distribution)
-
-        return possible_scenarios
-    
+        return possible_actions
         
+    @staticmethod
+    def validate_budgets(budget_allocation):
+        #total budget allocation cannot be different 1
+            total = 0
+            for campaign in budget_allocation:
+                total += campaign
+            if total != 1: return False
+            return True
     
-    def allocate_budget(self):
-        #campaign budget = current budget * campaign%allocation
-        for campaign in self.campaigns:
-            campaign.budget = round(self.current_budget*self.budget_allocation[campaign.id],2)
 
 
 class AI(State):
+
+    def __init__(self, alpha=0.5, epsilon=0.1):
+        """
+        Initialize AI with an empty Q-learning dictionary,
+        an alpha (learning) rate, and an epsilon rate.
+
+        The Q-learning dictionary maps `(state, action)`
+        pairs to a Q-value (a number).
+         - `state` is a tuple that contains a budget distribution (0.25,0.25,0.5)
+         - `action` is a tuple `(i, j...)` for an action (1, 1.04, 0.96)
+        """
+        self.q = dict()
+        self.alpha = alpha
+        self.epsilon = epsilon
+
+    def update(self, old_state, action, new_state, reward):
+        """
+        Update Q-learning model, given an old state, an action taken
+        in that state, a new resulting state, and the reward received
+        from taking that action.
+        """
+        old = self.get_q_value(old_state, action)
+        best_future = self.best_future_reward(new_state)
+        self.update_q_value(old_state, action, old, reward, best_future)
+
+    def get_q_value(self, state, action):
+        """
+        Return the Q-value for the state `state` and the action `action`.
+        If no Q-value exists yet in `self.q`, return 0.
+        """
+        if not bool(self.q):
+            return 0
+        else:
+            key = (tuple(state),action)
+            if self.q.get(key) == None:
+                return 0
+            else:
+                return self.q[key]
+            
+    def update_q_value(self, state, action, old_q, reward, future_rewards):
+        """
+        Update the Q-value for the state `state` and the action `action`
+        given the previous Q-value `old_q`, a current reward `reward`,
+        and an estiamte of future rewards `future_rewards`.
+
+        Use the formula:
+
+        Q(s, a) <- old value estimate
+                   + alpha * (new value estimate - old value estimate)
+
+        where `old value estimate` is the previous Q-value,
+        `alpha` is the learning rate, and `new value estimate`
+        is the sum of the current reward and estimated future rewards.
+        """
+        new_value_estimate = reward + future_rewards
+        self.q[tuple(state),tuple(action)] = float(old_q + self.alpha*(new_value_estimate-old_q))
+        
+    def best_future_reward(self, state):
+        """
+        Given a state `state`, consider all possible `(state, action)`
+        pairs available in that state and return the maximum of all
+        of their Q-values.
+
+        Use 0 as the Q-value if a `(state, action)` pair has no
+        Q-value in `self.q`. If there are no available actions in
+        `state`, return 0.
+        """
+        available_actions = State.available_actions(state)
+        actions = dict()
+        #if there are no available actions in the state return 0 
+        if len(available_actions) == 0:
+            return 0
+        for action in available_actions:
+            actions[action] = self.get_q_value(state,action)
+        max_action = max(actions, key=actions.get)
+        return int(actions[max_action])
+
+    def choose_action(self, state, epsilon=True):
+        """
+        Given a state `state`, return an action `(i, j)` to take.
+
+        If `epsilon` is `False`, then return the best action
+        available in the state (the one with the highest Q-value,
+        using 0 for pairs that have no Q-values).
+
+        If `epsilon` is `True`, then with probability
+        `self.epsilon` choose a random available action,
+        otherwise choose the best action available.
+
+        If multiple actions have the same Q-value, any of those
+        options is an acceptable return value.
+        """
+        #TODO if timestamp is 0, take no action. 
+        available_actions = list(State.available_actions(state))
+        actions = dict()
+        if epsilon == False:
+            for action in available_actions:
+                actions[action] = self.get_q_value(state,action)
+            max_action= max(actions, key=actions.get)
+            return max_action
+        elif epsilon == True:
+            random_action = [0,1] # 0 will take a random action, 1 will take best availabe action
+            next_action = random.choices(random_action,weights=(self.epsilon,1-self.epsilon),k=1)
+            if next_action == [0]:
+                return random.choice(available_actions)
+            elif next_action == [1]:
+                for action in available_actions:
+                    actions[action] = self.get_q_value(state,action)
+                max_action = max(actions, key=actions.get)
+                return max_action
+
+""""
+class DeepAI(State):
     
-    def __init__(self,state,state_size,action_space, model_name = 'Oktopus 1.0'):
+    def __init__(self,state,state_size,action_space, model_name = 'Oktopus 2.0'):
         self.state = state
         self.action_space = action_space
         self.state_size = state_size
@@ -211,3 +359,6 @@ class AI(State):
         #decrement epsilon 
         if self.epsilon > self.epsilon_final:
             self.epsilon *= self.epsilon_decay
+
+
+"""
