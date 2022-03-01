@@ -16,9 +16,8 @@ print('We created group of 3 init campaigns for you already')
 campaign1 = Campaign(1,0,0,0,0,0)
 campaign2 = Campaign(2,0,0,0,0,0)
 campaign3 = Campaign(3,0,0,0,0,0)
-oktopus = AI()
 campaigns = [campaign1,campaign2,campaign3]
-
+oktopus = AI()
 budget = int(input('Introduce total budget: '))
 time = int(input('Introduce the number of timestamps: '))
 campaign_group = State(budget,time,campaigns,oktopus)
@@ -27,8 +26,8 @@ while campaign_group.remaining > 0:
     print(f'Budget at timestamp {campaign_group.current_time} is {campaign_group.current_budget}')
     budget_printer(campaign_group)
     print(f'Available actions at timestamp {campaign_group.current_time}')
-    actions = list(campaign_group.available_actions(campaign_group.get_state(campaign_group.allocation())))
-    print(actions)
+    #actions = list(campaign_group.available_actions(campaign_group.get_state(campaign_group.allocation())))
+    #print(actions)
     #action = int(input("Take an action: "))
     action = campaign_group.take_action()
     for campaign in campaign_group.campaigns:
