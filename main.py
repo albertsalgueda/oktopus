@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 from itertools import combinations, permutations
 import copy
 
+from mab import *
+
 class Campaign():
 
     def __init__(self,id,budget,spent,impressions,conversions,roi):

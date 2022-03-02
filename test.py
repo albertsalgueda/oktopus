@@ -1,7 +1,9 @@
 from unittest import TestResult
-from main import *
 import os
 from scipy.interpolate import make_interp_spline, BSpline
+
+from main import *
+from mab import *
 
 #we should do the testing here
 #i'll start manually but we should automate it
