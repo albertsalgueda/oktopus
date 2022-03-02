@@ -1,4 +1,4 @@
-from main import Campaign,State,AI
+from main import *
 
 def budget_printer(campaign_group):
     i=0
