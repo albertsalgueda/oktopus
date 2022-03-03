@@ -1,4 +1,5 @@
 from main import *
+import numpy as np
 
 class RandomAgent(object):
 
@@ -54,7 +55,7 @@ class EpsilonGreedyAgent(object):
     old_estimate = 0.0
     for i in range(self.iterations):
         arm = np.random.choice(self.env.k_arms) if np.random.random() < self.epsilon else np.argmax(self.q_values)
-        reward = self.env.take_action(arm)
+        reward = self.env.take_action(arm,self.q_values)
         print(f'The rewards at timestamp {self.env.current_time} is {reward}')
         self.arm_counts[arm] += 1
         for arm in range(self.env.k_arms):
@@ -169,6 +170,7 @@ class UCBAgent(object):
 
         reward = self.env.take_action(arm)
         print(f'The rewards at timestamp {self.env.current_time} is {reward}')
+        #print(f'Current q values are: {self.q_values}')
         self.arm_counts[arm] += 1
         for arm in range(self.env.k_arms):
             self.arm_rewards[arm] += reward[arm]

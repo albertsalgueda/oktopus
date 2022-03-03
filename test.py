@@ -7,21 +7,21 @@ from mab import *
 
 #we should do the testing here
 #i'll start manually but we should automate it
-
-campaign1 = Campaign(1,0,0,0,0,0)
-campaign2 = Campaign(2,0,0,0,0,0)
-campaign3 = Campaign(3,0,0,0,0,3)
+#···· IMPORTANT!!! ---> campaign_id must be equal to arm id for the mab algorithm to work. 
+campaign1 = Campaign(0,0,0,0,0,1)
+campaign2 = Campaign(1,0,0,0,0,2)
+campaign3 = Campaign(2,0,0,0,0,3)
 
 campaigns = [campaign1,campaign2,campaign3]
 
-time = 100
+time = 5
 total_budget = 500
 test_env = State(total_budget,time,campaigns)
 
 #random_agent = RandomAgent(test_env,100)
 #random_agent_result = random_agent.act()
 
-epsilon_agent = EpsilonGreedyAgent(test_env, 0.8, 0.9, 5,time)
+epsilon_agent = EpsilonGreedyAgent(test_env, 0, 0.9, 5,time)
 epsilon_agent_result = epsilon_agent.act()
 
 #softmax_agent = SoftmaxExplorationAgent(test_env, tau=0.01, max_iterations=100)
