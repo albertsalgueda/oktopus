@@ -137,11 +137,22 @@ class State(Campaign):
             #we could test another action policy where the chosen arm would be also subject to a decrease, 
             # that would result in no action, I'll ignore that option
             if dec != arm:
+                #SOLUTION OF BUG 1
+                if temp_budget[dec] < 0.005:
+                    temp_budget[arm] -= temp_budget[dec]
+                    print(f'##### Campaign {dec} was stopped completely ###')
+                else:
                     temp_budget[dec] -= step
             else:
                 while dec == arm:
                     dec = int(random.choices(population, weights=decrease_prob, k=1)[0])
-                temp_budget[dec] -= step
+                #SOLUTION OF BUG 1
+                if temp_budget[dec] < 0.005:
+                    temp_budget[arm] -= temp_budget[dec]
+                    temp_budget[dec] = 0
+                    print(f'##### Campaign {dec} was stopped completely ###')
+                else:
+                    temp_budget[dec] -= step
             print(f'Ai has decreased campaign {dec} given probs {decrease_prob}')
         #validate that the budget is corrent before updating it
         if self.validate_budget(temp_budget):

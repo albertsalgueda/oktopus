@@ -19,7 +19,7 @@ class RandomAgent(object):
     old_estimate = 0.0
     for i in range(self.iterations):
         arm = np.random.choice(self.env.k_arms)
-        reward = self.env.take_action(arm)
+        reward = self.env.take_action(arm,self.q_values)
         print(f'The rewards at timestamp {self.env.current_time} is {reward}')
         self.arm_counts[arm] += 1
         for arm in range(self.env.k_arms):

@@ -14,14 +14,15 @@ campaign3 = Campaign(2,0,0,0,0,3)
 
 campaigns = [campaign1,campaign2,campaign3]
 
-time = 100
+time = 200
 total_budget = 500
 test_env = State(total_budget,time,campaigns)
 
-#random_agent = RandomAgent(test_env,100)
+#
+#random_agent = RandomAgent(test_env,200)
 #random_agent_result = random_agent.act()
 
-epsilon_agent = EpsilonGreedyAgent(test_env, 0.8, 0.9, 5,time)
+epsilon_agent = EpsilonGreedyAgent(test_env, 0.9, 0.9, 5,time)
 epsilon_agent_result = epsilon_agent.act()
 
 #softmax_agent = SoftmaxExplorationAgent(test_env, tau=0.01, max_iterations=100)
