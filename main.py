@@ -1,3 +1,4 @@
+from cmath import isnan
 from logging import raiseExceptions
 import math
 import random
@@ -76,7 +77,7 @@ class State(Campaign):
             print('AI still has no data so no action taken')
         else:
             print(f'AI is increasing budget of campaign {arm}')
-            self.act(arm,q_values)
+            self.act2(arm,q_values)
         b = copy.deepcopy(self.budget_allocation)
         rewards = self.get_reward()
         self.history[self.current_time] = [b,rewards]
@@ -92,11 +93,11 @@ class State(Campaign):
         temp_budget = copy.deepcopy(self.budget_allocation)
         temp_budget[arm] *= 1.005
         q_values = list(q_values)
-        decrease = q_values.index(min(q_values))
+        decrease = q_values.index(min(q_values))            
         #check that chosen arm is not the minim 
         if decrease != arm:
             temp_budget[decrease] *= 0.995
-        else:
+        else: 
             while decrease == arm:
                 decrease = random.randint(0,len(self.campaigns)-1)
             temp_budget[decrease] *= 0.995
@@ -106,7 +107,51 @@ class State(Campaign):
         else:
             #print(sum(temp_budget.values()))
             #TODO --> find a way out of here man
-            raise Exception('Budget is not valid')
+            while not self.validate_budget(temp_budget):
+                decrease = random.randint(0,len(self.campaigns)-1)
+                if decrease != arm:
+                    temp_budget[decrease] *= 0.995
+    
+    def act2(self,arm,q_values):
+        population = list(range(len(self.campaigns)))
+        step = 0.005
+        temp_budget = copy.deepcopy(self.budget_allocation)
+        temp_budget[arm] += step
+        q_values = q_values.tolist()
+        #if we have no data, randomly decrease an campaign
+        if all(v == 0 for v in q_values):
+            dec = random.randint(0,len(self.campaigns)-1)
+            if dec != arm:
+                temp_budget[dec] -= step
+            else:
+                while dec == arm:
+                    dec = random.randint(0,len(self.campaigns)-1)
+                temp_budget[dec] -= step
+        #if we have data, take a stochastic approach 
+        else:
+            norm = [float(i)/sum(q_values) for i in q_values]
+            decrease_prob = [1-p for p in norm]
+            #print(f'norm is {norm}')
+            #print(f'population is {population}')
+            dec = int(random.choices(population, weights=decrease_prob, k=1)[0])
+            #we could test another action policy where the chosen arm would be also subject to a decrease, 
+            # that would result in no action, I'll ignore that option
+            if dec != arm:
+                    temp_budget[dec] -= step
+            else:
+                while dec == arm:
+                    dec = int(random.choices(population, weights=decrease_prob, k=1)[0])
+                temp_budget[dec] -= step
+            print(f'Ai has decreased campaign {dec} given probs {decrease_prob}')
+        #validate that the budget is corrent before updating it
+        if self.validate_budget(temp_budget):
+            #round the budget to avoid RuntimeWarning: invalid value encountered in double_scalars
+            for campaign in temp_budget:
+                temp_budget[campaign] = round(temp_budget[campaign],4)
+            #update budget
+            self.budget_allocation = temp_budget
+        else:
+            raise Exception('Budget is not valid, act2 policy has failed')
             
     @staticmethod        
     def get_state(budget_allocation):
@@ -133,7 +178,7 @@ class State(Campaign):
             elif campaign < 0: return False
             else:
                 total += campaign
-        if total > 0.95 and total < 1:
+        if total > 0.98 and total < 1:
             return True
         else:
             return False
