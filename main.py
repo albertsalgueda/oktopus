@@ -189,7 +189,7 @@ class State(Campaign):
             elif campaign < 0: return False
             else:
                 total += campaign
-        if total > 0.98 and total < 1:
+        if total > 0.98 and total <= 1:
             return True
         else:
             return False
