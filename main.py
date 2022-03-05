@@ -15,7 +15,7 @@ class Campaign():
     def __init__(self,id,budget,spent,impressions,conversions,roi):
         #falta determinar como podemos saber el tiempo que lleva la campaña 
         self.id = id    
-        self.budget = budget
+        self.budget = budget #daily budget
         self.spent = spent
         self.impressions = impressions
         self.conversions = conversions
@@ -137,7 +137,7 @@ class State(Campaign):
             #we could test another action policy where the chosen arm would be also subject to a decrease, 
             # that would result in no action, I'll ignore that option
             if dec != arm:
-                #SOLUTION OF BUG 1
+                #TODO SOLUTION OF BUG 1
                 if temp_budget[dec] < 0.005:
                     temp_budget[arm] -= temp_budget[dec]
                     print(f'##### Campaign {dec} was stopped completely ###')
@@ -146,7 +146,7 @@ class State(Campaign):
             else:
                 while dec == arm:
                     dec = int(random.choices(population, weights=decrease_prob, k=1)[0])
-                #SOLUTION OF BUG 1
+                #TODO SOLUTION OF BUG 1
                 if temp_budget[dec] < 0.005:
                     temp_budget[arm] -= temp_budget[dec]
                     temp_budget[dec] = 0
@@ -193,3 +193,19 @@ class State(Campaign):
             return True
         else:
             return False
+
+    def dynamic(self):
+        for campaign in self.campaigns:
+            a = random.randint(0,2)
+            if a == 0:
+                campaign.roi += 0.05
+            elif a == 1:
+                if campaign.roi > 1:
+                    campaign.roi -= 0.05
+                elif campaign.roi > 0:
+                    campaign.roi -= 0.01
+                else:
+                    campaign.roi += 0.01
+            else: 
+                return self
+                

@@ -17,10 +17,11 @@ class RandomAgent(object):
   def act(self):
     count = 0
     old_estimate = 0.0
-    for i in range(self.iterations):
+    for i in range(self.iterations-1):
         arm = np.random.choice(self.env.k_arms)
         reward = self.env.take_action(arm,self.q_values)
         print(f'The rewards at timestamp {self.env.current_time} is {reward}')
+        print(f'The remaining budget at timestamp {self.env.current_time} is {self.env.remaining}')
         self.arm_counts[arm] += 1
         for arm in range(self.env.k_arms):
             self.arm_rewards[arm] += reward[arm]
@@ -30,6 +31,8 @@ class RandomAgent(object):
         current_estimate = old_estimate + (1/count)*(sum(reward)-old_estimate)
         self.cum_rewards.append(current_estimate)
         old_estimate = current_estimate
+        #DYNAMIC TESTING 
+        self.env.dynamic()
 
     return {"arm_counts": self.arm_counts, "rewards": self.rewards, "cum_rewards": self.cum_rewards}
 
@@ -53,10 +56,11 @@ class EpsilonGreedyAgent(object):
   def act(self):
     count = 0
     old_estimate = 0.0
-    for i in range(self.iterations):
+    for i in range(self.iterations-1):
         arm = np.random.choice(self.env.k_arms) if np.random.random() < self.epsilon else np.argmax(self.q_values)
         reward = self.env.take_action(arm,self.q_values)
         print(f'The rewards at timestamp {self.env.current_time} is {reward}')
+        print(f'The remaining budget at timestamp {self.env.current_time} is {self.env.remaining}')
         self.arm_counts[arm] += 1
         for arm in range(self.env.k_arms):
             self.arm_rewards[arm] += reward[arm]
@@ -69,6 +73,9 @@ class EpsilonGreedyAgent(object):
 
         if i % self.decay_interval == 0:
             self.epsilon = self.epsilon * self.decay_rate
+
+        #DYNAMIC TESTING 
+        self.env.dynamic()
 
     return {"arm_counts": self.arm_counts, "rewards": self.rewards, "cum_rewards": self.cum_rewards}
 
@@ -90,10 +97,11 @@ class SoftmaxExplorationAgent(object):
   def act(self):
     count = 0
     old_estimate = 0.0
-    for i in range(self.iterations):
+    for i in range(self.iterations-1):
         self.action_probas = np.exp(self.q_values/self.tau) / np.sum(np.exp(self.q_values/self.tau))
+        print(self.action_probas)
         arm = np.random.choice(self.env.k_arms, p=self.action_probas)
-        reward = self.env.take_action(arm)
+        reward = self.env.take_action(arm,self.q_values)
         print(f'The rewards at timestamp {self.env.current_time} is {reward}')
         #sum one to the arm that was choosen 
         self.arm_counts[arm] = self.arm_counts[arm] + 1
@@ -104,6 +112,8 @@ class SoftmaxExplorationAgent(object):
 
         self.rewards.append(sum(reward))
         self.cum_rewards.append(sum(self.rewards) / len(self.rewards))
+        #DYNAMIC TESTING 
+        self.env.dynamic()
 
     return {"arm_counts": self.arm_counts, "rewards": self.rewards, "cum_rewards": self.cum_rewards}
 
@@ -125,9 +135,9 @@ class OptimisticAgent(object):
   def act(self):
     count = 0
     old_estimate = 0.0
-    for i in range(self.iterations):
+    for i in range(self.iterations-1):
         arm = np.argmax(self.q_values)
-        reward = self.env.take_action(arm)
+        reward = self.env.take_action(arm,self.q_values)
         print(f'The rewards at timestamp {self.env.current_time} is {reward}')
         #sum one to the arm that was choosen 
         self.arm_counts[arm] = self.arm_counts[arm] + 1
@@ -141,6 +151,8 @@ class OptimisticAgent(object):
         current_estimate = old_estimate + (1/count)*(sum(reward)-old_estimate)
         self.cum_rewards.append(current_estimate)
         old_estimate = current_estimate
+        #DYNAMIC TESTING 
+        self.env.dynamic()
 
     return {"arm_counts": self.arm_counts, "rewards": self.rewards, "cum_rewards": self.cum_rewards}
 
@@ -161,14 +173,14 @@ class UCBAgent(object):
   def act(self):
     count = 0
     old_estimate = 0.0
-    for i in range(0, self.iterations):
+    for i in range(0, self.iterations-1):
         if i < len(self.q_values):
             arm = i
         else:
             U = self.c * np.sqrt(np.log(i) / self.arm_counts)
             arm = np.argmax(self.q_values + U)
 
-        reward = self.env.take_action(arm)
+        reward = self.env.take_action(arm,self.q_values)
         print(f'The rewards at timestamp {self.env.current_time} is {reward}')
         #print(f'Current q values are: {self.q_values}')
         self.arm_counts[arm] += 1
@@ -181,6 +193,8 @@ class UCBAgent(object):
         current_estimate = old_estimate + (1/count)*(sum(reward)-old_estimate)
         self.cum_rewards.append(current_estimate)
         old_estimate = current_estimate
+        #DYNAMIC TESTING 
+        self.env.dynamic()
 
     return {"arm_counts" : self.arm_counts, "rewards": self.rewards, "cum_rewards": self.cum_rewards}
 

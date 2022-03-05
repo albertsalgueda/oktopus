@@ -8,47 +8,63 @@ from mab import *
 #we should do the testing here
 #i'll start manually but we should automate it
 #···· IMPORTANT!!! ---> campaign_id must be equal to arm id for the mab algorithm to work. 
-campaign1 = Campaign(0,0,0,0,0,2)
-campaign2 = Campaign(1,0,0,0,0,0)
-campaign3 = Campaign(2,0,0,0,0,3)
+def test(time,total_budget):
 
-campaigns = [campaign1,campaign2,campaign3]
+    campaign1 = Campaign(0,0,0,0,0,2)
+    campaign2 = Campaign(1,0,0,0,0,0)
+    campaign3 = Campaign(2,0,0,0,0,3)
 
-time = 200
+    campaigns = [campaign1,campaign2,campaign3]
+    test_env = State(total_budget,time,campaigns)
+
+    #random_agent = RandomAgent(test_env,time)
+    #random_agent_result = random_agent.act()
+
+    #epsilon_agent = EpsilonGreedyAgent(test_env, 0.9, 0.9, 5,time)
+    #epsilon_agent_result = epsilon_agent.act()
+
+    softmax_agent = SoftmaxExplorationAgent(test_env, tau=0.5, max_iterations=time)
+    softmax_agent_result = softmax_agent.act()
+
+    #optimistic_agent = OptimisticAgent(test_env,10,10,time)
+    #optimistic_agent_result = optimistic_agent.act()
+
+    #ucb_agent = UCBAgent(test_env, 1,time)
+    #ucb_agent_result = ucb_agent.act()
+
+    total_rewards = sum(softmax_agent_result["rewards"])
+    print(f"Total Reward : {total_rewards}")
+    """
+    #visualize the results
+    cum_rewards = optimistic_agent_result["cum_rewards"]
+    arm_counts = optimistic_agent_result["arm_counts"]
+    rewards = np.array([sum(test_env.history[i+1][1]) for i in range(len(test_env.history)-1)])
+    T = np.array(range(1,test_env.time))
+
+    xnew = np.linspace(T.min(), T.max()-1, 300)  
+    spl = make_interp_spline(T, rewards, k=3)  # type: BSpline
+    power_smooth = spl(xnew)
+    plt.plot(xnew, power_smooth)
+    plt.show()
+    """
+    def budget_printer(campaign_group):
+        for campaign in campaign_group:
+            print(f'{campaign.id} has {campaign.roi} ROI')
+
+    budget_printer(test_env.campaigns)
+    return total_rewards
+
+time = 90
 total_budget = 500
-test_env = State(total_budget,time,campaigns)
+results = []
+iterations = 500
+for i in range(iterations):
+    results.append(test(time,total_budget))
 
-#
-#random_agent = RandomAgent(test_env,200)
-#random_agent_result = random_agent.act()
+def Average(lst):
+    return sum(lst) / len(lst)
 
-epsilon_agent = EpsilonGreedyAgent(test_env, 0.9, 0.9, 5,time)
-epsilon_agent_result = epsilon_agent.act()
-
-#softmax_agent = SoftmaxExplorationAgent(test_env, tau=0.01, max_iterations=100)
-#softmax_agent_result = softmax_agent.act()
-
-#optimistic_agent = OptimisticAgent(test_env,10,10,100)
-#optimistic_agent_result = optimistic_agent.act()
-
-#ucb_agent = UCBAgent(test_env, 1,100)
-#ucb_agent_result = ucb_agent.act()
-
-total_rewards = sum(epsilon_agent_result["rewards"])
-print(f"Total Reward : {total_rewards}")
-
-cum_rewards = epsilon_agent_result["cum_rewards"]
-arm_counts = epsilon_agent_result["arm_counts"]
-rewards = np.array([sum(test_env.history[i][1]) for i in range(len(test_env.history))])
-T = np.array(range(0,test_env.time))
-
-xnew = np.linspace(T.min(), T.max(), 300)  
-spl = make_interp_spline(T, rewards, k=3)  # type: BSpline
-power_smooth = spl(xnew)
-plt.plot(xnew, power_smooth)
-plt.show()
-
-
+print(f"Showing results after {iterations} iterations. Best: {max(results)}, Worst: {min(results)}, Average: {Average(results)}")
 
 """
 fig = plt.figure(figsize=[30,10])
