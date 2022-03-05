@@ -50,6 +50,8 @@ class State(Campaign):
 
         self.k_arms = len(campaigns)
 
+        self.stopped = []
+        
         self.initial_allocation()
 
     def next_timestamp(self):
@@ -136,33 +138,46 @@ class State(Campaign):
             dec = int(random.choices(population, weights=decrease_prob, k=1)[0])
             #we could test another action policy where the chosen arm would be also subject to a decrease, 
             # that would result in no action, I'll ignore that option
-            if dec != arm:
+            if dec != arm and dec not in self.stopped:
                 #TODO SOLUTION OF BUG 1
                 if temp_budget[dec] < 0.005:
                     temp_budget[arm] -= temp_budget[dec]
+                    temp_budget[arm] -= step
+                    temp_budget[dec] = 0
                     print(f'##### Campaign {dec} was stopped completely ###')
+                    #TODO delete campaign from the state ( make it ignore it )
+                    self.stopped.append(dec)
                 else:
                     temp_budget[dec] -= step
             else:
-                while dec == arm:
+                while True:
                     dec = int(random.choices(population, weights=decrease_prob, k=1)[0])
-                #TODO SOLUTION OF BUG 1
+                    if dec == arm:
+                        continue
+                    if dec in self.stopped:
+                        continue
+                    else:
+                        break
+                #SOLUTION OF BUG 1
                 if temp_budget[dec] < 0.005:
                     temp_budget[arm] -= temp_budget[dec]
+                    temp_budget[arm] -= step
                     temp_budget[dec] = 0
                     print(f'##### Campaign {dec} was stopped completely ###')
+                    self.stopped.append(dec)
                 else:
                     temp_budget[dec] -= step
             print(f'Ai has decreased campaign {dec} given probs {decrease_prob}')
+        #round the budget to avoid RuntimeWarning: invalid value encountered in double_scalars
+        for campaign in temp_budget:
+            temp_budget[campaign] = round(temp_budget[campaign],4)
         #validate that the budget is corrent before updating it
         if self.validate_budget(temp_budget):
-            #round the budget to avoid RuntimeWarning: invalid value encountered in double_scalars
-            for campaign in temp_budget:
-                temp_budget[campaign] = round(temp_budget[campaign],4)
             #update budget
             self.budget_allocation = temp_budget
         else:
-            raise Exception('Budget is not valid, act2 policy has failed')
+            print(f"Chosen arm: {arm}, Stopped Campaigns: {self.stopped}")
+            raise Exception(f'Budget is not valid, act2 policy has failed, Failed budget is {temp_budget}')
             
     @staticmethod        
     def get_state(budget_allocation):
@@ -189,6 +204,7 @@ class State(Campaign):
             elif campaign < 0: return False
             else:
                 total += campaign
+        total = round(total,4)
         if total > 0.98 and total <= 1:
             return True
         else:
@@ -198,14 +214,14 @@ class State(Campaign):
         for campaign in self.campaigns:
             a = random.randint(0,2)
             if a == 0:
-                campaign.roi += 0.05
+                campaign.roi *= 1.05
             elif a == 1:
                 if campaign.roi > 1:
-                    campaign.roi -= 0.05
+                    campaign.roi *= 0.95
                 elif campaign.roi > 0:
-                    campaign.roi -= 0.01
+                    campaign.roi *= 0.99
                 else:
-                    campaign.roi += 0.01
+                    campaign.roi *= 1.01
             else: 
                 return self
                 
