@@ -21,7 +21,6 @@ campaign1 = Campaign(1,0,0,0,0,0)
 campaign2 = Campaign(2,0,0,0,0,0)
 campaign3 = Campaign(3,0,0,0,0,0)
 campaigns = [campaign1,campaign2,campaign3]
-oktopus = AI()
 budget = int(input('Introduce total budget: '))
 time = int(input('Introduce the number of timestamps: '))
 campaign_group = State(budget,time,campaigns,oktopus)

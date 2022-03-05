@@ -1,3 +1,4 @@
+from cmath import isnan
 from logging import raiseExceptions
 import math
 import random
@@ -14,7 +15,7 @@ class Campaign():
     def __init__(self,id,budget,spent,impressions,conversions,roi):
         #falta determinar como podemos saber el tiempo que lleva la campaña 
         self.id = id    
-        self.budget = budget
+        self.budget = budget #daily budget
         self.spent = spent
         self.impressions = impressions
         self.conversions = conversions
@@ -70,22 +71,13 @@ class State(Campaign):
         #print(f'The rewards at timestamp {self.current_time} is {rewards}')
         return rewards
 
-    def take_action(self,arm):
+    def take_action(self,arm,q_values):
         random_action = []
         if self.current_time < 1:
             print('AI still has no data so no action taken')
         else:
             print(f'AI is increasing budget of campaign {arm}')
-            actions = self.available_actions(self.budget_allocation)
-            max = 0
-            for budget in actions:
-                if budget[arm] > max:
-                    random_action=budget
-            #update budget
-            i = 0
-            for campaign in self.campaigns:
-                self.budget_allocation[campaign.id] = random_action[i]
-                i += 1
+            self.act2(arm,q_values)
         b = copy.deepcopy(self.budget_allocation)
         rewards = self.get_reward()
         self.history[self.current_time] = [b,rewards]
@@ -94,13 +86,91 @@ class State(Campaign):
         self.next_timestamp()
         return rewards
 
+    def act(self,arm,q_values):
+        #given a q values, take an action 
+        #current action policy => increase choosen arm, decrease least arm
+        #TODO --> improve action policy given q_values 
+        temp_budget = copy.deepcopy(self.budget_allocation)
+        temp_budget[arm] *= 1.005
+        q_values = list(q_values)
+        decrease = q_values.index(min(q_values))            
+        #check that chosen arm is not the minim 
+        if decrease != arm:
+            temp_budget[decrease] *= 0.995
+        else: 
+            while decrease == arm:
+                decrease = random.randint(0,len(self.campaigns)-1)
+            temp_budget[decrease] *= 0.995
+        #validate that the budget is corrent before updating it
+        if self.validate_budget(temp_budget):
+            self.budget_allocation = temp_budget
+        else:
+            #print(sum(temp_budget.values()))
+            #TODO --> find a way out of here man
+            while not self.validate_budget(temp_budget):
+                decrease = random.randint(0,len(self.campaigns)-1)
+                if decrease != arm:
+                    temp_budget[decrease] *= 0.995
+    
+    def act2(self,arm,q_values):
+        population = list(range(len(self.campaigns)))
+        step = 0.005
+        temp_budget = copy.deepcopy(self.budget_allocation)
+        temp_budget[arm] += step
+        q_values = q_values.tolist()
+        #if we have no data, randomly decrease an campaign
+        if all(v == 0 for v in q_values):
+            dec = random.randint(0,len(self.campaigns)-1)
+            if dec != arm:
+                temp_budget[dec] -= step
+            else:
+                while dec == arm:
+                    dec = random.randint(0,len(self.campaigns)-1)
+                temp_budget[dec] -= step
+        #if we have data, take a stochastic approach 
+        else:
+            norm = [float(i)/sum(q_values) for i in q_values]
+            decrease_prob = [1-p for p in norm]
+            #print(f'norm is {norm}')
+            #print(f'population is {population}')
+            dec = int(random.choices(population, weights=decrease_prob, k=1)[0])
+            #we could test another action policy where the chosen arm would be also subject to a decrease, 
+            # that would result in no action, I'll ignore that option
+            if dec != arm:
+                #TODO SOLUTION OF BUG 1
+                if temp_budget[dec] < 0.005:
+                    temp_budget[arm] -= temp_budget[dec]
+                    print(f'##### Campaign {dec} was stopped completely ###')
+                else:
+                    temp_budget[dec] -= step
+            else:
+                while dec == arm:
+                    dec = int(random.choices(population, weights=decrease_prob, k=1)[0])
+                #TODO SOLUTION OF BUG 1
+                if temp_budget[dec] < 0.005:
+                    temp_budget[arm] -= temp_budget[dec]
+                    temp_budget[dec] = 0
+                    print(f'##### Campaign {dec} was stopped completely ###')
+                else:
+                    temp_budget[dec] -= step
+            print(f'Ai has decreased campaign {dec} given probs {decrease_prob}')
+        #validate that the budget is corrent before updating it
+        if self.validate_budget(temp_budget):
+            #round the budget to avoid RuntimeWarning: invalid value encountered in double_scalars
+            for campaign in temp_budget:
+                temp_budget[campaign] = round(temp_budget[campaign],4)
+            #update budget
+            self.budget_allocation = temp_budget
+        else:
+            raise Exception('Budget is not valid, act2 policy has failed')
+            
     @staticmethod        
     def get_state(budget_allocation):
         return tuple(budget_allocation.values())
 
     def initial_allocation(self):
         for campaign in self.campaigns:
-            self.budget_allocation[campaign.id] = 1/len(self.campaigns)
+            self.budget_allocation[campaign.id] = round(1/len(self.campaigns),4)
         b = copy.deepcopy(self.budget_allocation)
         self.history[self.current_time] = [b,self.get_reward()]
         self.allocate_budget()
@@ -110,94 +180,32 @@ class State(Campaign):
         #campaign budget = current budget * campaign%allocation
         for campaign in self.campaigns:
             campaign.budget = round(self.current_budget*self.budget_allocation[campaign.id],2)
-
-    @staticmethod
-    def available_actions(budget_distribution):
-        #returns a set of available actions given a particular state
-        #action is a tupple of n campaigns lenght
-        #EX: if campaigns = 2 then action (x,y) will represent the change on each campaign respectevely
-        #EX: for n campaigns action (n1,n2...n)
-        #el step es el nivel de cambio permitido step=0.01 por defecto
-        #max_step el numero de steps permitidos, si max_step es 5 maximo se puede incrementar un 5%
-        # actions = set()
-        max_step = 0.04
-        step = 0.01
-
-        def validate_budget(budget_allocation):
-        #total budget allocation cannot be different 1
-            total = 0
-            for campaign in budget_allocation:
-                if campaign > 1: return False
-                elif campaign < 0: return False
-                else:
-                    total += campaign
-            if total > 0.95 and total < 1:
-                return True
-            else:
-                return False
-
-        # max percentage of change from an iteration
-        amount_campaigns = len(budget_distribution)
-
-        # we have to get the current budget allocation as a list such that //
-        # budget_allocation[0] is budget campaign 1, budget_allocation[1] es budget campaign 2, etc
-        # something like this:
-
-        budget_allocation = list(budget_distribution.values())
-
-        # creation of a list that contains all possible values of change that can be applied to each campaign
-        possible_budget_reallocation_units = [0]
-
-        # we define it, and now we fulfill it with this loop
-
-        for i in range(int(max_step / step)):
-            possible_budget_reallocation_units.append((i + 1) * step)
-            possible_budget_reallocation_units.append(-(i + 1) * step)
-
-        # creation of a list that contains all possible paradigms of change regarding all campaigns //
-        # note that every possible paradigm of change is a list such that
-        # list[0] is change in campaign 1, list[1] is change in campaign 2, etc
-
-        no_change_option = []
-        for i in range(amount_campaigns):
-            no_change_option.append(0)
-
-        possible_budget_reallocation = [tuple(no_change_option)]
-
-        temp = combinations(possible_budget_reallocation_units, amount_campaigns)
-        for combination in list(temp):
-            if sum(list(combination)) == 0:
-                possible_permutations = list(permutations(list(combination)))
-                possible_budget_reallocation.extend(possible_permutations)
-
-        # creation of a list (all available actions than could be reached) that combines our actual distribution
-        # with all the possible paradigms of change we obtained with possible_budget_reallocation
-
-        possible_scenarios = []
-
-        for possible_case in possible_budget_reallocation:
-            new_distribution = []
-            for i in range(len(possible_case)):
-                new_distribution.append(budget_allocation[i] * possible_case[i])
-            if validate_budget(new_distribution):
-                possible_scenarios.append(new_distribution)
-
-        for possible_case in possible_budget_reallocation:
-            case = []
-            for i in range(len(possible_case)):
-                num = budget_allocation[i] + possible_case[i]
-                case.append(round(num, 4))
-            possible_scenarios.append(case)
-
-        actual_cases_checked = [case for case in possible_scenarios if validate_budget(case)]
-
-        return actual_cases_checked
         
     @staticmethod
-    def validate_budgets(budget_allocation):
-        #total budget allocation cannot be different 1
-            total = 0
-            for campaign in budget_allocation:
+    def validate_budget(budget_allocation):
+        total = 0
+        for campaign in budget_allocation.values():
+            if campaign > 1: return False
+            elif campaign < 0: return False
+            else:
                 total += campaign
-            if total != 1: return False
+        if total > 0.98 and total < 1:
             return True
+        else:
+            return False
+
+    def dynamic(self):
+        for campaign in self.campaigns:
+            a = random.randint(0,2)
+            if a == 0:
+                campaign.roi += 0.05
+            elif a == 1:
+                if campaign.roi > 1:
+                    campaign.roi -= 0.05
+                elif campaign.roi > 0:
+                    campaign.roi -= 0.01
+                else:
+                    campaign.roi += 0.01
+            else: 
+                return self
+                
