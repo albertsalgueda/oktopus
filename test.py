@@ -25,11 +25,11 @@ def test(time,total_budget):
     test_env = State(total_budget,time,campaigns)
 
     random_agent = RandomAgent(test_env,time)
-    #random_agent_result = random_agent.act()
+    random_agent_result = random_agent.act()
 
     epsilon_agent = EpsilonGreedyAgent(test_env, 0.9, 0.9, 5,time)
     #epsilon_agent_result = epsilon_agent.act()
-
+    
     softmax_agent = SoftmaxExplorationAgent(test_env, tau=0.5, max_iterations=time)
     #softmax_agent_result = softmax_agent.act()
 
@@ -37,23 +37,25 @@ def test(time,total_budget):
     #optimistic_agent_result = optimistic_agent.act()
 
     ucb_agent = UCBAgent(test_env, 1,time)
-    ucb_agent_result = ucb_agent.act()
+    #ucb_agent_result = ucb_agent.act()
 
-    total_rewards = sum(ucb_agent_result["rewards"])
+    total_rewards = sum(random_agent_result["rewards"])
     print(f"Total Reward : {total_rewards}")
+    
     """
-    #visualize the results
-    cum_rewards = optimistic_agent_result["cum_rewards"]
-    arm_counts = optimistic_agent_result["arm_counts"]
+    -Visualize results-
+    cum_rewards = random_agent_result["cum_rewards"]
+    arm_counts = random_agent_result["arm_counts"]
     rewards = np.array([sum(test_env.history[i+1][1]) for i in range(len(test_env.history)-1)])
-    T = np.array(range(1,test_env.time))
+    T = np.array(range(1,test_env.time-1))
 
-    xnew = np.linspace(T.min(), T.max()-1, 300)  
+    xnew = np.linspace(T.min(), T.max(), 300)  
     spl = make_interp_spline(T, rewards, k=3)  # type: BSpline
     power_smooth = spl(xnew)
     plt.plot(xnew, power_smooth)
     plt.show()
     """
+
     def budget_printer(campaign_group):
         for campaign in campaign_group:
             print(f'{campaign.id} has {campaign.roi} ROI')
@@ -64,7 +66,7 @@ def test(time,total_budget):
 time = 100
 total_budget = 500
 results = []
-iterations = 500
+iterations = 1
 for i in range(iterations):
     results.append(test(time,total_budget))
 

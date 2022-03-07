@@ -88,32 +88,6 @@ class State(Campaign):
         self.next_timestamp()
         return rewards
 
-    def act(self,arm,q_values):
-        #given a q values, take an action 
-        #current action policy => increase choosen arm, decrease least arm
-        #TODO --> improve action policy given q_values 
-        temp_budget = copy.deepcopy(self.budget_allocation)
-        temp_budget[arm] *= 1.005
-        q_values = list(q_values)
-        decrease = q_values.index(min(q_values))            
-        #check that chosen arm is not the minim 
-        if decrease != arm:
-            temp_budget[decrease] *= 0.995
-        else: 
-            while decrease == arm:
-                decrease = random.randint(0,len(self.campaigns)-1)
-            temp_budget[decrease] *= 0.995
-        #validate that the budget is corrent before updating it
-        if self.validate_budget(temp_budget):
-            self.budget_allocation = temp_budget
-        else:
-            #print(sum(temp_budget.values()))
-            #TODO --> find a way out of here man
-            while not self.validate_budget(temp_budget):
-                decrease = random.randint(0,len(self.campaigns)-1)
-                if decrease != arm:
-                    temp_budget[decrease] *= 0.995
-    
     def act2(self,arm,q_values):
         population = list(range(len(self.campaigns)))
         step = 0.005
@@ -140,7 +114,7 @@ class State(Campaign):
             # that would result in no action, I'll ignore that option
             if dec != arm and dec not in self.stopped:
                 #TODO SOLUTION OF BUG 1
-                if temp_budget[dec] < 0.005:
+                if temp_budget[dec] < step:
                     temp_budget[arm] -= temp_budget[dec]
                     temp_budget[arm] -= step
                     temp_budget[dec] = 0
@@ -159,7 +133,7 @@ class State(Campaign):
                     else:
                         break
                 #SOLUTION OF BUG 1
-                if temp_budget[dec] < 0.005:
+                if temp_budget[dec] < step:
                     temp_budget[arm] -= temp_budget[dec]
                     temp_budget[arm] -= step
                     temp_budget[dec] = 0
