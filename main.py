@@ -1,3 +1,4 @@
+from cmath import isnan
 import random
 import numpy as np
 import matplotlib.pyplot as plt
@@ -150,7 +151,7 @@ class State(Campaign):
                 print(f'Ai has decreased campaign {dec} given probs {decrease_prob}')
         #round the budget to avoid RuntimeWarning: invalid value encountered in double_scalars
         for campaign in temp_budget:
-            temp_budget[campaign] = round(temp_budget[campaign],4)
+            temp_budget[campaign] = round(temp_budget[campaign],8)
         #validate that the budget is corrent before updating it
         if self.validate_budget(temp_budget):
             #update budget
@@ -165,7 +166,7 @@ class State(Campaign):
 
     def initial_allocation(self):
         for campaign in self.campaigns:
-            self.budget_allocation[campaign.id] = round(1/len(self.campaigns),4)
+            self.budget_allocation[campaign.id] = round(1/len(self.campaigns),8)
         b = copy.deepcopy(self.budget_allocation)
         self.history[self.current_time] = [b,self.get_reward()]
         self.allocate_budget()
@@ -174,7 +175,7 @@ class State(Campaign):
         #turns a distribution into a value
         #campaign budget = current budget * campaign%allocation
         for campaign in self.campaigns:
-            campaign.budget = round(self.current_budget*self.budget_allocation[campaign.id],2)
+            campaign.budget = round(self.current_budget*self.budget_allocation[campaign.id],8)
         
     @staticmethod
     def validate_budget(budget_allocation):
