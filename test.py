@@ -24,8 +24,6 @@ def test(time,total_budget):
     campaigns = [campaign1,campaign2,campaign3,campaign4,campaign5,campaign6,campaign7,campaign8,campaign9,campaign10]
     test_env = State(total_budget,time,campaigns)
 
-    random_agent = RandomAgent(test_env,time)
-    random_agent_result = random_agent.act()
 
     epsilon_agent = EpsilonGreedyAgent(test_env, 0.9, 0.9, 5,time)
     #epsilon_agent_result = epsilon_agent.act()
@@ -33,19 +31,19 @@ def test(time,total_budget):
     softmax_agent = SoftmaxExplorationAgent(test_env, tau=0.5, max_iterations=time)
     #softmax_agent_result = softmax_agent.act()
 
-    optimistic_agent = OptimisticAgent(test_env,10,10,time)
-    #optimistic_agent_result = optimistic_agent.act()
+    optimistic_agent = OptimisticAgent(test_env,100,100,time)
+    optimistic_agent_result = optimistic_agent.act()
 
     ucb_agent = UCBAgent(test_env, 1,time)
     #ucb_agent_result = ucb_agent.act()
 
-    total_rewards = sum(random_agent_result["rewards"])
+    total_rewards = sum(optimistic_agent_result["rewards"])
     print(f"Total Reward : {total_rewards}")
     
-    """
-    -Visualize results-
-    cum_rewards = random_agent_result["cum_rewards"]
-    arm_counts = random_agent_result["arm_counts"]
+    
+    #-Visualize results-
+    cum_rewards = optimistic_agent_result["cum_rewards"]
+    arm_counts = optimistic_agent_result["arm_counts"]
     rewards = np.array([sum(test_env.history[i+1][1]) for i in range(len(test_env.history)-1)])
     T = np.array(range(1,test_env.time-1))
 
@@ -53,8 +51,10 @@ def test(time,total_budget):
     spl = make_interp_spline(T, rewards, k=3)  # type: BSpline
     power_smooth = spl(xnew)
     plt.plot(xnew, power_smooth)
-    plt.show()
-    """
+    plt.xlabel("Time Steps")
+    plt.ylabel("Rewards")
+    #plt.show()
+    
 
     def budget_printer(campaign_group):
         for campaign in campaign_group:
@@ -63,8 +63,8 @@ def test(time,total_budget):
     budget_printer(test_env.campaigns)
     return total_rewards
 
-time = 100
-total_budget = 500
+time = 1000
+total_budget = 5000
 results = []
 iterations = 1
 for i in range(iterations):
