@@ -1,7 +1,5 @@
-from unittest import TestResult
-import os
 from scipy.interpolate import make_interp_spline, BSpline
-
+import os 
 from main import *
 from mab import *
 
@@ -63,12 +61,12 @@ def test(time,total_budget):
     budget_printer(test_env.campaigns)
     return total_rewards
 
-time = 1000
+time_steps = 1000
 total_budget = 5000
 results = []
 iterations = 1
 for i in range(iterations):
-    results.append(test(time,total_budget))
+    results.append(test(time_steps,total_budget))
 
 def Average(lst):
     return sum(lst) / len(lst)
