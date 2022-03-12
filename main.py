@@ -186,7 +186,7 @@ class State(Campaign):
             else:
                 total += campaign
         total = round(total,4)
-        if total > 0.95 and total <= 1.01:
+        if total > 0.95 and total <= 1.025:
             #it is better that we spend less than more. 
             return True
         else:

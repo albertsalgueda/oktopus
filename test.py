@@ -6,7 +6,18 @@ from mab import *
 #we should do the testing here
 #i'll start manually but we should automate it
 #···· IMPORTANT!!! ---> campaign_id must be equal to arm id for the mab algorithm to work. 
-def test(time,total_budget):
+def Average(lst):
+    return sum(lst) / len(lst)
+
+# function to return key for any value
+def get_key(val,my_dict):
+    for key, value in my_dict.items():
+         if val == value:
+             return key
+ 
+    return "key doesn't exist"
+
+def test(time,total_budget,initial_q,initial_visits):
 
     campaign1 = Campaign(0,0,0,0,0,2)
     campaign2 = Campaign(1,0,0,0,0,0.2)
@@ -29,7 +40,7 @@ def test(time,total_budget):
     softmax_agent = SoftmaxExplorationAgent(test_env, tau=0.5, max_iterations=time)
     #softmax_agent_result = softmax_agent.act()
 
-    optimistic_agent = OptimisticAgent(test_env,100,100,time)
+    optimistic_agent = OptimisticAgent(test_env,initial_q,initial_visits,time)
     optimistic_agent_result = optimistic_agent.act()
 
     ucb_agent = UCBAgent(test_env, 1,time)
@@ -61,19 +72,29 @@ def test(time,total_budget):
     budget_printer(test_env.campaigns)
     return total_rewards
 
-time_steps = 1000
+time_steps = 150
 total_budget = 5000
-results = []
+results = {}
 iterations = 1
-for i in range(iterations):
-    results.append(test(time_steps,total_budget))
+initial_q = [i+0.1 for i in range(1,100)]
+initial_visits = [i for i in range(1,100)]
 
-def Average(lst):
-    return sum(lst) / len(lst)
+#HYPERPARAMETER TUNING:
+for visit in range(len(initial_visits)):
+    for q in range(len(initial_q)):
+        print(f"----q = {q} --- visits{visit}")
+        #TODO -> guardar el mejor resultado de 250 iteraciones para que el efecto random de las campañas no altere
+        results[(visit,q)] = float(test(time_steps,total_budget,initial_q[q],initial_visits[visit]))
 
-print(f"Showing results after {iterations} iterations. Best: {max(results)}, Worst: {min(results)}, Average: {Average(results)}")
+print(f'The best configuration for complexity 10 campaigns has been {max(results.values())} with hyperparameters {get_key(max(results.values()),results)}')
 
 """
+#MODEL TESTING
+for i in range(iterations):
+    results.append(test(time_steps,total_budget))
+print(f"Showing results after {iterations} iterations. Best: {max(results)}, Worst: {min(results)}, Average: {Average(results)}")
+
+#ADVANCED VISUALIZATION OF MULTI-ARMED BANDIT
 fig = plt.figure(figsize=[30,10])
 ax1 = fig.add_subplot(121)
 ax1.plot([sum(test_env.history[i][1]) for i in range(len(test_env.history))], label="cummulative rewards")
@@ -85,7 +106,6 @@ ax2.bar([i for i in range(len(arm_counts))], arm_counts)
 if os.path.exists("test.png"):
     os.remove('test.png')
 plt.savefig('test.png')
-
 
 plt.plot([test_env.history[i][0][1] for i in range(len(test_env.history))])
 plt.plot([test_env.history[i][0][2] for i in range(len(test_env.history))])
