@@ -31,6 +31,7 @@ class SimulationAgent(object):
     #print(self.q_values)
     self.rewards.append(sum(reward))
     count += 1
+    #We comute the average dynamically ( optimizing server cost )
     current_estimate = old_estimate + (1/count)*(sum(reward)-old_estimate)
     self.cum_rewards.append(current_estimate)
     old_estimate = current_estimate

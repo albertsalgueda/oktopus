@@ -75,7 +75,7 @@ def test(time,total_budget,initial_q,initial_visits):
 time_steps = 150
 total_budget = 5000
 results = {}
-iterations = 1
+iterations = 250
 initial_q = [i+0.1 for i in range(1,100)]
 initial_visits = [i for i in range(1,100)]
 
@@ -83,8 +83,10 @@ initial_visits = [i for i in range(1,100)]
 for visit in range(len(initial_visits)):
     for q in range(len(initial_q)):
         print(f"----q = {q} --- visits{visit}")
-        #TODO -> guardar el mejor resultado de 250 iteraciones para que el efecto random de las campañas no altere
-        results[(visit,q)] = float(test(time_steps,total_budget,initial_q[q],initial_visits[visit]))
+        tests = []
+        for i in range(iterations):
+            tests.append(test(time_steps,total_budget,initial_q[q],initial_visits[visit]))
+        results[(initial_visits[visit],initial_q[q])] = Average(tests)
 
 print(f'The best configuration for complexity 10 campaigns has been {max(results.values())} with hyperparameters {get_key(max(results.values()),results)}')
 
