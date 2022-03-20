@@ -75,9 +75,12 @@ def test(time,total_budget,initial_q,initial_visits):
 time_steps = 150
 total_budget = 5000
 results = {}
-iterations = int(input('Select the number of iterations'))
-print('Calculating estimate of total computation time')
+iterations = int(input('Select the number of iterations: '))
+print('Calculating estimate of total computation time...')
 print(f'It will take {(iterations*150)/60} minutes')
+inp = input('Accept (a) or Cancel (c): ')
+if inp=='c':
+    raise("Experiment has been cancelled")
 explore_q = [float(round(0.1*i+0.1,2)) for i in range(1,100)]
 explore_visits = [i for i in range(1,100)]
 actions = 0
