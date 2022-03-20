@@ -34,16 +34,16 @@ def test(time,total_budget,initial_q,initial_visits):
     test_env = State(total_budget,time,campaigns)
 
 
-    epsilon_agent = EpsilonGreedyAgent(test_env, 0.9, 0.9, 5,time)
+    #epsilon_agent = EpsilonGreedyAgent(test_env, 0.9, 0.9, 5,time)
     #epsilon_agent_result = epsilon_agent.act()
     
-    softmax_agent = SoftmaxExplorationAgent(test_env, tau=0.5, max_iterations=time)
+    #softmax_agent = SoftmaxExplorationAgent(test_env, tau=0.5, max_iterations=time)
     #softmax_agent_result = softmax_agent.act()
 
     optimistic_agent = OptimisticAgent(test_env,initial_q,initial_visits,time)
     optimistic_agent_result = optimistic_agent.act()
 
-    ucb_agent = UCBAgent(test_env, 1,time)
+    #ucb_agent = UCBAgent(test_env, 1,time)
     #ucb_agent_result = ucb_agent.act()
 
     total_rewards = sum(optimistic_agent_result["rewards"])
@@ -75,20 +75,20 @@ def test(time,total_budget,initial_q,initial_visits):
 time_steps = 150
 total_budget = 5000
 results = {}
-iterations = 250
-initial_q = [i+0.1 for i in range(1,100)]
-initial_visits = [i for i in range(1,100)]
+iterations = 1
+explore_q = [float(round(0.1*i+0.1,2)) for i in range(1,100)]
+explore_visits = [i for i in range(1,100)]
 
 #HYPERPARAMETER TUNING:
-for visit in range(len(initial_visits)):
-    for q in range(len(initial_q)):
-        print(f"----q = {q} --- visits{visit}")
+for visit in range(len(explore_visits)):
+    for q in range(len(explore_q)):
+        print(f"----q = {explore_q[q]} --- visits{explore_visits[visit]}")
         tests = []
         for i in range(iterations):
-            tests.append(test(time_steps,total_budget,initial_q[q],initial_visits[visit]))
-        results[(initial_visits[visit],initial_q[q])] = Average(tests)
+            tests.append(test(time_steps,total_budget,explore_q[q],explore_visits[visit]))
+        results[(explore_q[q],explore_visits[visit])] = Average(tests)
 
-print(f'The best configuration for complexity 10 campaigns has been {max(results.values())} with hyperparameters {get_key(max(results.values()),results)}')
+print(f'The best configuration for complexity 10 campaigns has been {max(results.values())} with hyperparameters {get_key(max(results.values()),results)} => (q,visits)')
 
 """
 #MODEL TESTING
