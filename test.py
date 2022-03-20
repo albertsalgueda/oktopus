@@ -75,16 +75,23 @@ def test(time,total_budget,initial_q,initial_visits):
 time_steps = 150
 total_budget = 5000
 results = {}
-iterations = 1
+iterations = int(input('Select the number of iterations'))
+print('Calculating estimate of total computation time')
+print(f'It will take {(iterations*150)/60} minutes')
 explore_q = [float(round(0.1*i+0.1,2)) for i in range(1,100)]
 explore_visits = [i for i in range(1,100)]
-
+actions = 0
+combinations = len(explore_q)*len(explore_visits)*iterations
 #HYPERPARAMETER TUNING:
 for visit in range(len(explore_visits)):
+    tests = [1]
     for q in range(len(explore_q)):
-        print(f"----q = {explore_q[q]} --- visits{explore_visits[visit]}")
+        a = round(100*actions/combinations,3)
+        print(f"{a}% {int(a)*'#'}")
+        #print(f"----q = {explore_q[q]} --- visits={explore_visits[visit]} --- result= {max(tests)} ")
         tests = []
         for i in range(iterations):
+            actions +=1
             tests.append(test(time_steps,total_budget,explore_q[q],explore_visits[visit]))
         results[(explore_q[q],explore_visits[visit])] = Average(tests)
 
