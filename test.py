@@ -2,6 +2,7 @@ from scipy.interpolate import make_interp_spline, BSpline
 import os 
 from main import *
 from mab import *
+import time
 
 #we should do the testing here
 #i'll start manually but we should automate it
@@ -72,7 +73,8 @@ def test(time,total_budget,initial_q,initial_visits):
     budget_printer(test_env.campaigns)
     return total_rewards
 
-time_steps = 150
+
+time_steps = 100
 total_budget = 5000
 results = {}
 iterations = int(input('Select the number of iterations: '))
@@ -86,6 +88,7 @@ explore_visits = [i for i in range(1,100)]
 actions = 0
 combinations = len(explore_q)*len(explore_visits)*iterations
 #HYPERPARAMETER TUNING:
+start = time.time() #we need it to calculate time complexity of the program
 for visit in range(len(explore_visits)):
     tests = [1]
     for q in range(len(explore_q)):
@@ -98,7 +101,13 @@ for visit in range(len(explore_visits)):
             tests.append(test(time_steps,total_budget,explore_q[q],explore_visits[visit]))
         results[(explore_q[q],explore_visits[visit])] = Average(tests)
 
+#Caculate time to record and process 1 frame
+end = time.time() 
+totalTime = end - start
+fps = 1/totalTime
 print(f'The best configuration for complexity 10 campaigns has been {max(results.values())} with hyperparameters {get_key(max(results.values()),results)} => (q,visits)')
+print(f'The experiment took: {totalTime/60}')
+
 
 """
 #MODEL TESTING
