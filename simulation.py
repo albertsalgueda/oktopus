@@ -15,14 +15,14 @@ print('Welcome to the simulation of Oktopus ;)')
 print('We created group of 3 init campaigns for you already')
 
 campaign1 = Campaign(0,0,0,0,0,0)
-campaign2 = Campaign(1,0,0,0,0,0)
-campaign3 = Campaign(2,0,0,0,0,0)
+campaign2 = Campaign(1,0,0,0,0,2)
+campaign3 = Campaign(2,0,0,0,0,3)
 campaigns = [campaign1,campaign2,campaign3]
 
 budget = int(input('Introduce total budget: '))
 time = int(input('Introduce the number of timestamps: '))
-inital_allocation = [0.25,0.25,0.5]
-campaign_group = State(budget,time,campaigns,inital_allocation)
+#inital_allocation = [0.25,0.25,0.5]
+campaign_group = State(budget,time,campaigns)
 optimistic_agent = SimulationAgent(campaign_group,10,10,time)
 
 while campaign_group.remaining > 0:
@@ -33,9 +33,9 @@ while campaign_group.remaining > 0:
     action = optimistic_agent.act()
     for campaign in campaign_group.campaigns:
         print(f'Introduce new data for campaign {campaign.id}')
-        data = str(input("new Impresions, new Conversions and new ROI respectively separated with a comma: "))
-        data = data.split(',')
-        campaign.update(data[0],data[1],data[2])
+        #data = str(input("new Impresions, new Conversions and new ROI respectively separated with a comma: "))
+        #data = data.split(',')
+        #campaign.update(data[0],data[1],data[2])
     i = input("Ready for the /next time step?")
     print(f'Remaining budget: {campaign_group.remaining}')
 
