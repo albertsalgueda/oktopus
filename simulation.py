@@ -14,9 +14,9 @@ def budget_printer(campaign_group):
 print('Welcome to the simulation of Oktopus ;)')
 print('We created group of 3 init campaigns for you already')
 
-campaign1 = Campaign(0,0,0,0,0,0)
-campaign2 = Campaign(1,0,0,0,0,2)
-campaign3 = Campaign(2,0,0,0,0,3)
+campaign1 = Campaign(0,0,0,0,0)
+campaign2 = Campaign(1,0,0,0,2)
+campaign3 = Campaign(2,0,0,0,3)
 campaigns = [campaign1,campaign2,campaign3]
 
 budget = int(input('Introduce total budget: '))

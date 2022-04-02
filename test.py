@@ -20,18 +20,11 @@ def get_key(val,my_dict):
 
 def test(time,total_budget,initial_q,initial_visits):
 
-    campaign1 = Campaign(0,0,0,0,0,2)
-    campaign2 = Campaign(1,0,0,0,0,0.2)
-    campaign3 = Campaign(2,0,0,0,0,3)
-    campaign4 = Campaign(3,0,0,0,0,0.9)
-    campaign5 = Campaign(4,0,0,0,0,4)
-    campaign6 = Campaign(5,0,0,0,0,2)
-    campaign7 = Campaign(6,0,0,0,0,7)
-    campaign8 = Campaign(7,0,0,0,0,12)
-    campaign9 = Campaign(8,0,0,0,0,20)
-    campaign10 = Campaign(9,0,0,0,0,0.3)
+    campaign1 = Campaign(0,0,0,0,2)
+    campaign2 = Campaign(1,0,0,0,0.2)
+    campaign3 = Campaign(2,0,0,0,3)
 
-    campaigns = [campaign1,campaign2,campaign3,campaign4,campaign5,campaign6,campaign7,campaign8,campaign9,campaign10]
+    campaigns = [campaign1,campaign2,campaign3]
     test_env = State(total_budget,time,campaigns)
 
 

@@ -11,13 +11,12 @@ from mab import *
 
 class Campaign():
 
-    def __init__(self,id,budget,spent,impressions,conversions,roi):
+    def __init__(self,id,budget,spent,conversion_value,roi):
         #falta determinar como podemos saber el tiempo que lleva la campaña 
         self.id = id    
         self.budget = budget #daily budget
         self.spent = spent
-        self.impressions = impressions
-        self.conversions = conversions
+        self.conversion_value = conversion_value
         self.roi = roi
 
     def update(self,impressions,conversions,roi):
