@@ -12,9 +12,6 @@ class SimulationAgent(object):
     self.q_values = np.ones(self.env.k_arms) * self.initial_q
     self.arm_counts = np.ones(self.env.k_arms) * self.initial_visits
     self.arm_rewards = np.zeros(self.env.k_arms)
-    
-    self.rewards = [0.0]
-    self.cum_rewards = [0.0]
 
   def act(self):
     arm = np.argmax(self.q_values)
