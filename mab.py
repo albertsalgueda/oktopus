@@ -26,8 +26,6 @@ class SimulationAgent(object):
       self.arm_rewards[arm] = self.arm_rewards[arm] + reward[arm]
       self.q_values[arm] = self.q_values[arm] + (1/self.arm_counts[arm]) * (reward[arm] - self.q_values[arm])
    
-    return {"arm_counts": self.arm_counts, "rewards": self.rewards, "cum_rewards": self.cum_rewards}
-
 
 class EpsilonGreedyAgent(object):
 
