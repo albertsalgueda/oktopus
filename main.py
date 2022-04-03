@@ -14,7 +14,6 @@ class Campaign():
         self.budget = budget # daily budget
         self.spent = spent #spent across time steps
         self.conversion_value = [].append(conversion_value) #conversion value across time steps  
-        self.roi = roi
 
     def update(self,new_value):
         """
@@ -252,11 +251,9 @@ class State(Campaign):
             return True
         else:
             return False
-    
+    """
+    #Changes campaigns ROAS randomly for testing purposes. 
     def dynamic(self):
-        """
-        Changes campaigns ROAS randomly for testing purposes. 
-        """
         for campaign in self.campaigns:
             a = random.randint(0,2)
             if a == 0:
@@ -270,3 +267,4 @@ class State(Campaign):
                     campaign.roi *= 1.01
             else: 
                 return self
+    """
