@@ -3,26 +3,40 @@ import numpy as np
 
 class SimulationAgent(object):
 
-  def __init__(self, env, initial_q, initial_visits, max_iterations):
-    self.env = env
-    self.iterations = max_iterations
-    self.initial_q = initial_q
-    self.initial_visits = initial_visits
+  def __init__(self, env, initial_q, initial_visits, max_iterations,name="Optimistic OO"):
+    #### traits
+    self.name = name # current algorithm:  OPTIMISTIC OO -- OO : optimized optimistic 
+    self.env = env # we pass the state 
+    self.iterations = max_iterations # we pass time constraint
 
+    ### hyperparameters: how optimistic do you want to be? 
+    self.initial_q = initial_q #Initial Q_values 
+    self.initial_visits = initial_visits #Initial visits 
+
+    ### memory... 
     self.q_values = np.ones(self.env.k_arms) * self.initial_q
     self.arm_counts = np.ones(self.env.k_arms) * self.initial_visits
     self.arm_rewards = np.zeros(self.env.k_arms)
 
   def act(self):
+    """
+    implement optimized optimistic algorithm 
+    """
+    ### we choose an arm. 
     arm = np.argmax(self.q_values)
+
+    ### we get rewards from the environment  
     reward = self.env.take_action(arm,self.q_values)
-    #sum one to the arm that was choosen 
+
+    #we sum 1 to arm counts
     self.arm_counts[arm] = self.arm_counts[arm] + 1
+
     #assign rewards for all arms
     for arm in range(self.env.k_arms):
+      #update data 
       self.arm_rewards[arm] = self.arm_rewards[arm] + reward[arm]
       self.q_values[arm] = self.q_values[arm] + (1/self.arm_counts[arm]) * (reward[arm] - self.q_values[arm])
-   
+    
 
 class EpsilonGreedyAgent(object):
 
