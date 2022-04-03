@@ -1,5 +1,5 @@
 from main import *
-from mab import SimulationAgent
+from mab import SimulationAgent,AI
 
 def budget_printer(campaign_group):
     i=0
@@ -13,7 +13,7 @@ def dynamic(campaign_group):
     #updates campaign purchase value randomly
     for campaign in campaign_group.campaigns:
         previous = campaign.conversion_value[-1]
-        new_value = previous + 1 
+        new_value = previous  
         new_spent = campaign.budget # / time step lenght
         campaign.update(new_spent,new_value)
 
@@ -29,7 +29,7 @@ budget = int(input('Introduce total budget: '))
 time = int(input('Introduce the number of timestamps: '))
 #inital_allocation = [0.25,0.25,0.5]
 campaign_group = State(budget,time,campaigns)
-optimistic_agent = AI(campaign_group,0.5)
+optimistic_agent = SimulationAgent(campaign_group,1,5)
 
 while campaign_group.remaining > 0:
     print('#############################################')

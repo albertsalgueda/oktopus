@@ -23,7 +23,7 @@ class SimulationAgent(object):
     """
     ### we choose an arm. 
     arm = np.argmax(self.q_values)
-
+    print(self.q_values)
     ### we get rewards from the environment  
     reward = self.env.take_action(arm,self.q_values)
     print(f'The rewards at timestamp {self.env.current_time} is {reward}')
