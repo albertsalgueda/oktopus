@@ -20,9 +20,9 @@ def get_key(val,my_dict):
 
 def test(time,total_budget):
 
-    campaign1 = Campaign(0,0,0,0,2)
-    campaign2 = Campaign(1,0,0,0,0.2)
-    campaign3 = Campaign(2,0,0,0,3)
+    campaign1 = Campaign(0,0,0,0,0,1)
+    campaign2 = Campaign(1,0,0,0,0,2)
+    campaign3 = Campaign(2,0,0,0,0,3)   
 
     campaigns = [campaign1,campaign2,campaign3]
     test_env = State(total_budget,time,campaigns)
@@ -43,7 +43,7 @@ def test(time,total_budget):
     total_rewards = sum(optimistic_agent_result["rewards"])
     print(f"Total Reward : {total_rewards}")
     
-    
+    """
     #-Visualize results-
     cum_rewards = optimistic_agent_result["cum_rewards"]
     arm_counts = optimistic_agent_result["arm_counts"]
@@ -57,8 +57,7 @@ def test(time,total_budget):
     plt.xlabel("Time Steps")
     plt.ylabel("Rewards")
     #plt.show()
-    
-
+    """
     def budget_printer(campaign_group):
         for campaign in campaign_group:
             print(f'{campaign.id} has {campaign.roi} ROI')
@@ -69,7 +68,7 @@ def test(time,total_budget):
 
 time_steps = 100
 total_budget = 5000
-results = {}
+results = []
 #MODEL TESTING
 iterations = 200
 for i in range(iterations):

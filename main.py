@@ -70,9 +70,9 @@ class State(Campaign):
         rewards = [] 
         for campaign in self.campaigns:
             rewards.append(campaign.roi*self.current_budget*self.budget_allocation[campaign.id])
-        #norm = [float(i)/sum(rewards) for i in rewards]
+        norm = [float(i)/sum(rewards) for i in rewards]
         #print(f'The rewards at timestamp {self.current_time} is {rewards}')
-        return rewards
+        return norm
 
     def take_action(self,arm,q_values):
         random_action = []
