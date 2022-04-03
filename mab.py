@@ -38,10 +38,13 @@ class SimulationAgent(object):
 
 class AI(object):
 
-  def __init__(self, env, tau=0.5):
+  def __init__(self, env, tau=1):
     self.env = env
     self.tau = tau
-
+    """
+    For high tau ( temperature ), all actions have nearly same probability.
+    The lower the temperature,  the more expected rewards affect the probability, the probability of the action with the highest expected reward tends to 1.
+    """
     self.action_probas = np.zeros(self.env.k_arms)
     self.q_values = np.zeros(self.env.k_arms)
     self.arm_counts = np.ones(self.env.k_arms)
