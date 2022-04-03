@@ -3,11 +3,10 @@ import numpy as np
 
 class SimulationAgent(object):
 
-  def __init__(self, env, initial_q, initial_visits, max_iterations,name="Optimistic OO"):
+  def __init__(self, env, initial_q, initial_visits,name="Optimistic OO"):
     #### traits
     self.name = name # current algorithm:  OPTIMISTIC OO -- OO : optimized optimistic 
     self.env = env # we pass the state 
-    self.iterations = max_iterations # we pass time constraint
 
     ### hyperparameters: how optimistic do you want to be? 
     self.initial_q = initial_q #Initial Q_values 
@@ -27,7 +26,7 @@ class SimulationAgent(object):
 
     ### we get rewards from the environment  
     reward = self.env.take_action(arm,self.q_values)
-
+    print(f'The rewards at timestamp {self.env.current_time} is {reward}')
     #we sum 1 to arm counts
     self.arm_counts[arm] = self.arm_counts[arm] + 1
 
@@ -36,7 +35,41 @@ class SimulationAgent(object):
       #update data 
       self.arm_rewards[arm] = self.arm_rewards[arm] + reward[arm]
       self.q_values[arm] = self.q_values[arm] + (1/self.arm_counts[arm]) * (reward[arm] - self.q_values[arm])
+
+class AI(object):
+
+  def __init__(self, env, tau=0.5):
+    self.env = env
+    self.tau = tau
+
+    self.action_probas = np.zeros(self.env.k_arms)
+    self.q_values = np.zeros(self.env.k_arms)
+    self.arm_counts = np.ones(self.env.k_arms)
+    self.arm_rewards = np.zeros(self.env.k_arms)
     
+    self.rewards = [0.0]
+    self.cum_rewards = [0.0]  
+
+  def act(self):
+    count = 0
+    old_estimate = 0.0
+    self.action_probas = np.exp(self.q_values/self.tau) / np.sum(np.exp(self.q_values/self.tau))
+    arm = np.random.choice(self.env.k_arms, p=self.action_probas)
+    reward = self.env.take_action(arm,self.q_values)
+    print(f'The rewards at timestamp {self.env.current_time} is {reward}')
+    #sum one to the arm that was choosen 
+    self.arm_counts[arm] = self.arm_counts[arm] + 1
+    #assign rewards for all arms
+    for arm in range(self.env.k_arms):
+      self.arm_rewards[arm] += reward[arm]
+      self.q_values[arm] = self.q_values[arm] + (1/self.arm_counts[arm]) * (reward[arm] - self.q_values[arm])
+
+    self.rewards.append(sum(reward))
+    self.cum_rewards.append(sum(self.rewards) / len(self.rewards))
+
+    return {"arm_counts": self.arm_counts, "rewards": self.rewards, "cum_rewards": self.cum_rewards}
+
+
 class EpsilonGreedyAgent(object):
 
   def __init__(self, env, epsilon, decay_rate, decay_interval,max_iterations):

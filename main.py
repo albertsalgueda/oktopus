@@ -9,16 +9,17 @@ import copy
 from mab import * # import all our algorithms from mab.py
 
 class Campaign():
-    def __init__(self,id,budget,spent,conversion_value,roi):
+    def __init__(self,id,budget,spent,conversion_value):
         self.id = id    
         self.budget = budget # daily budget
-        self.spent = spent #spent across time steps
-        self.conversion_value = [].append(conversion_value) #conversion value across time steps  
+        self.spent = [spent] #spent across time steps
+        self.conversion_value = [conversion_value] #conversion value across time steps  
 
-    def update(self,new_value):
+    def update(self, new_spent, new_value):
         """
         updates self.converion_value with current time step data 
         """
+        self.spent.append(new_spent)
         self.conversion_value.append(new_value)
 
     def change_budget(self,increment):
@@ -78,7 +79,7 @@ class State(Campaign):
         """
         move time forward xD  
         """
-        self.remaining-=self.spent[self.current_time] # update reimaining budget
+        self.remaining-=self.current_budget # update reimaining budget
         self.current_time += 1 # move time 
         # if there is no budget left... 
         if self.remaining <= 0:
@@ -95,7 +96,8 @@ class State(Campaign):
             return list(np.zeros(len(self.budget_allocation)))
         rewards = [] 
         for campaign in self.campaigns:
-            rewards.append(campaign.conversion_value[self.current_time-1])
+            print(campaign.conversion_value)
+            rewards.append(campaign.conversion_value[-1])
         norm = [float(i)/sum(rewards) for i in rewards] #normalize rewards 
         #print(f'The rewards at timestamp {self.current_time} is {rewards}')
         return norm
