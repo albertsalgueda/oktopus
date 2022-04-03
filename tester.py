@@ -93,11 +93,8 @@ for visit in range(len(explore_visits)):
             actions +=1
             tests.append(test(time_steps,total_budget,explore_q[q],explore_visits[visit]))
         results[(explore_q[q],explore_visits[visit])] = Average(tests)
-
-#Caculate time to record and process 1 frame
 end = time.time() 
 totalTime = end - start
-fps = 1/totalTime
 print(f'The best configuration for complexity 10 campaigns has been {max(results.values())} with hyperparameters {get_key(max(results.values()),results)} => (q,visits)')
 print(f'The experiment took: {totalTime/60}')
 
