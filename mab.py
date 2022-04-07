@@ -3,26 +3,75 @@ import numpy as np
 
 class SimulationAgent(object):
 
-  def __init__(self, env, initial_q, initial_visits, max_iterations):
-    self.env = env
-    self.iterations = max_iterations
-    self.initial_q = initial_q
-    self.initial_visits = initial_visits
+  def __init__(self, env, initial_q, initial_visits,name="Optimistic OO"):
+    #### traits
+    self.name = name # current algorithm:  OPTIMISTIC OO -- OO : optimized optimistic 
+    self.env = env # we pass the state 
 
+    ### hyperparameters: how optimistic do you want to be? 
+    self.initial_q = initial_q #Initial Q_values 
+    self.initial_visits = initial_visits #Initial visits 
+
+    ### memory... 
     self.q_values = np.ones(self.env.k_arms) * self.initial_q
     self.arm_counts = np.ones(self.env.k_arms) * self.initial_visits
     self.arm_rewards = np.zeros(self.env.k_arms)
 
   def act(self):
+    """
+    implement optimized optimistic algorithm 
+    """
+    ### we choose an arm. 
     arm = np.argmax(self.q_values)
+    print(self.q_values)
+    ### we get rewards from the environment  
     reward = self.env.take_action(arm,self.q_values)
+    print(f'The rewards at timestamp {self.env.current_time} is {reward}')
+    #we sum 1 to arm counts
+    self.arm_counts[arm] = self.arm_counts[arm] + 1
+
+    #assign rewards for all arms
+    for arm in range(self.env.k_arms):
+      #update data 
+      self.arm_rewards[arm] = self.arm_rewards[arm] + reward[arm]
+      self.q_values[arm] = self.q_values[arm] + (1/self.arm_counts[arm]) * (reward[arm] - self.q_values[arm])
+
+class AI(object):
+
+  def __init__(self, env, tau=1):
+    self.env = env
+    self.tau = tau
+    """
+    For high tau ( temperature ), all actions have nearly same probability.
+    The lower the temperature,  the more expected rewards affect the probability, the probability of the action with the highest expected reward tends to 1.
+    """
+    self.action_probas = np.zeros(self.env.k_arms)
+    self.q_values = np.zeros(self.env.k_arms)
+    self.arm_counts = np.ones(self.env.k_arms)
+    self.arm_rewards = np.zeros(self.env.k_arms)
+    
+    self.rewards = [0.0]
+    self.cum_rewards = [0.0]  
+
+  def act(self):
+    count = 0
+    old_estimate = 0.0
+    self.action_probas = np.exp(self.q_values/self.tau) / np.sum(np.exp(self.q_values/self.tau))
+    arm = np.random.choice(self.env.k_arms, p=self.action_probas)
+    reward = self.env.take_action(arm,self.q_values)
+    print(f'The rewards at timestamp {self.env.current_time} is {reward}')
     #sum one to the arm that was choosen 
     self.arm_counts[arm] = self.arm_counts[arm] + 1
     #assign rewards for all arms
     for arm in range(self.env.k_arms):
-      self.arm_rewards[arm] = self.arm_rewards[arm] + reward[arm]
+      self.arm_rewards[arm] += reward[arm]
       self.q_values[arm] = self.q_values[arm] + (1/self.arm_counts[arm]) * (reward[arm] - self.q_values[arm])
-   
+
+    self.rewards.append(sum(reward))
+    self.cum_rewards.append(sum(self.rewards) / len(self.rewards))
+
+    return {"arm_counts": self.arm_counts, "rewards": self.rewards, "cum_rewards": self.cum_rewards}
+
 
 class EpsilonGreedyAgent(object):
 
