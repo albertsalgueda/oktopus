@@ -234,4 +234,13 @@ class UCBAgent(object):
 
     return {"arm_counts" : self.arm_counts, "rewards": self.rewards, "cum_rewards": self.cum_rewards}
 
+class ThompsonAgent(object):
+
+    def __init__(self, env, c, max_iterations):
+        self.env = env
+        self.c = c
+        self.iterations = max_iterations
+
+
+    pass
 
