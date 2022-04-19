@@ -1,18 +1,20 @@
 from main import *
-from mab import SimulationAgent,AI
+from mab import SimulationAgent, AI
 
-def budget_printer(campaign_group):
+
+def budget_printer(state):
     i=0
-    budget = campaign_group.budget_allocation
-    for campaign in budget:
-        print(f'{campaign} has a {round(budget[campaign]*100,4)}% of the current budget, which is {campaign_group.campaigns[i].budget}')
-        print(f'{campaign} has {campaign_group.campaigns[i].conversion_value} conversions')
+    time_step = state.current_time
+    for campaign in state.budget_allocation:
+        print(f'Campaign {campaign} has a {round(state.budget_allocation[campaign]*100,4)}% of the current budget')
+        print(f'Last 5 conversions: {state.campaigns[i].conversion_values[time_step - 5:]}')
         i +=1
 
-def dynamic(campaign_group):
+
+def dynamic(state):
     #updates campaign purchase value randomly
-    for campaign in campaign_group.campaigns:
-        previous = campaign.conversion_value[-1]
+    for campaign in state.campaigns:
+        previous = campaign.conversion_values[-1]
         new_value = previous  
         new_spent = campaign.budget # / time step lenght
         campaign.update(new_spent,new_value)
@@ -26,19 +28,18 @@ campaign3 = Campaign(2,0,0,100)
 campaigns = [campaign1,campaign2,campaign3]
 
 budget = int(input('Introduce total budget: '))
-time = int(input('Introduce the number of timestamps: '))
+time = int(input('Introduce the number of time steps: '))
 #inital_allocation = [0.25,0.25,0.5]
-campaign_group = State(budget,time,campaigns)
-optimistic_agent = SimulationAgent(campaign_group,1,5)
+state = State(budget,time,campaigns)
+optimistic_agent = SimulationAgent(state,1,5)
 
-while campaign_group.remaining > 0:
-    print('#############################################')
-    print(f'Budget at timestamp {campaign_group.current_time} is {campaign_group.current_budget}')
-    budget_printer(campaign_group)
+while state.remaining_budget > 0:
+    print('##########################################################################################')
+    print(f'IN TIME STEP {state.current_time}:')
+    budget_printer(state)
     ## /next
     action = optimistic_agent.act()
-    dynamic(campaign_group)
-    i = input("Ready for the /next time step?")
-    print(f'Remaining budget: {campaign_group.remaining}')
+    dynamic(state)
+    print(f'Remaining budget: {state.remaining_budget}')
 
 print('Optimization finished, thanks for trusting Oktopus')
