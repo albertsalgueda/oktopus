@@ -89,6 +89,7 @@ class State(Campaign):
         TODO: Encontrar otras maneras de aumentar el step
         """
         self.step *= 1.001 
+        self.max_step =  max(self.budget_allocation.values())
         if self.step>=self.max_step:
             self.step = self.max_step   
 
