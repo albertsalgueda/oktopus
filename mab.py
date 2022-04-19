@@ -1,17 +1,21 @@
 from main import *
 import numpy as np
 
+class ThompsonAgent(object):
+
+    def __init__(self, env, c, max_iterations):
+        self.env = env
+        self.c = c
+        self.iterations = max_iterations
+    def act(self):
+      pass
+
 class SimulationAgent(object):
 
-  def __init__(self, env, initial_q, initial_visits,name="Optimistic OO"):
-    #### traits
-    self.name = name # current algorithm:  OPTIMISTIC OO -- OO : optimized optimistic 
-    self.env = env # we pass the state 
-
-    ### hyperparameters: how optimistic do you want to be? 
-    self.initial_q = initial_q #Initial Q_values 
-    self.initial_visits = initial_visits #Initial visits 
-
+  def __init__(self, env, initial_q, initial_visits):
+    self.env = env                                                    # pass State() instance
+    self.initial_q = initial_q                                        # Initial Q_values [ How optimistic do you want to be? ]
+    self.initial_visits = initial_visits                              # Initial visits 
     ### memory... 
     self.q_values = np.ones(self.env.k_arms) * self.initial_q
     self.arm_counts = np.ones(self.env.k_arms) * self.initial_visits
@@ -54,8 +58,6 @@ class AI(object):
     self.cum_rewards = [0.0]  
 
   def act(self):
-    count = 0
-    old_estimate = 0.0
     self.action_probas = np.exp(self.q_values/self.tau) / np.sum(np.exp(self.q_values/self.tau))
     arm = np.random.choice(self.env.k_arms, p=self.action_probas)
     reward = self.env.take_action(arm,self.q_values)
