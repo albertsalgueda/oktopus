@@ -1,5 +1,6 @@
 from cmath import isnan
 import random
+from xml.sax import parseString
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
@@ -55,8 +56,9 @@ class State(Campaign):
             for campaign in campaigns:
                 self.budget_allocation[campaign.id] = initial_allocation[campaign.id]
 
-    def next_timestamp(self):
+    def next_step(self):
         self.current_time += 1
+        print(f'time {self.current_time}')
         self.remaining-=self.current_budget
         if self.remaining <= 0:
             raise Exception('No budget left')
@@ -71,24 +73,50 @@ class State(Campaign):
         for campaign in self.campaigns:
             rewards.append(campaign.roi*self.current_budget*self.budget_allocation[campaign.id])
         norm = [float(i)/sum(rewards) for i in rewards]
-        #print(f'The rewards at timestamp {self.current_time} is {rewards}')
+        print(f'The rewards at timestamp {self.current_time} is {rewards}')
         return norm
 
-    def take_action(self,arm,q_values):
-        random_action = []
+    def take_action(self,arm,dec):
         if self.current_time < 1:
-            print('AI still has no data so no action taken')
-        else:
+            pass
+        else: 
             print(f'AI is increasing budget of campaign {arm}')
-            self.act2(arm,q_values)
+            self.act3(arm,dec)
         b = copy.deepcopy(self.budget_allocation)
         rewards = self.get_reward()
         self.history[self.current_time] = [b,rewards]
         print(f'Current state: {self.budget_allocation} at timestamp {self.current_time}')
         self.allocate_budget()
-        self.next_timestamp()
+        self.next_step()
         return rewards
 
+    def act3(self,arm,dec):
+        temp_budget = copy.deepcopy(self.budget_allocation)
+        temp_budget[arm] += self.step
+        if dec not in self.stopped:
+            temp_budget[dec] -= self.step
+            if temp_budget[dec] < 0: 
+                temp_budget[dec] = 0
+                self.stopped.append(dec)
+        else:
+            a = True
+            while a:
+                dec = random.randint(0,len(self.campaigns)-1)
+                if dec != arm:
+                    if dec not in self.stopped:
+                        temp_budget[dec] -= self.step
+                        print(f'Ai has decreased campaign {dec}')
+                    a = False
+           
+        for campaign in temp_budget:
+            temp_budget[campaign] = round(temp_budget[campaign],8)
+        #validate that the budget is corrent before updating it
+        if self.validate_budget(temp_budget):
+            self.budget_allocation = temp_budget
+        else:
+            print(f"Chosen arm: {arm}, Stopped Campaigns: {self.stopped}")
+            raise Exception(f'Budget is not valid, act3 policy has failed, Failed budget is {temp_budget}')
+            
     def act2(self,arm,q_values):
         population = list(range(len(self.campaigns)))
         step = self.step
@@ -187,10 +215,8 @@ class State(Campaign):
                 total += campaign
         total = round(total,4)
         if total > 0.95 and total <= 1.025:
-            #it is better that we spend less than more. 
             return True
-        else:
-            return False
+        else: return False
     
     def dynamic(self):
         for campaign in self.campaigns:

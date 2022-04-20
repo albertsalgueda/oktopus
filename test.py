@@ -27,20 +27,22 @@ def test(time,total_budget):
     campaigns = [campaign1,campaign2,campaign3]
     test_env = State(total_budget,time,campaigns)
 
-
     #epsilon_agent = EpsilonGreedyAgent(test_env, 0.9, 0.9, 5,time)
     #epsilon_agent_result = epsilon_agent.act()
     
     #softmax_agent = SoftmaxExplorationAgent(test_env, tau=0.5, max_iterations=time)
     #softmax_agent_result = softmax_agent.act()
 
-    optimistic_agent = OptimisticAgent(test_env,1,5,time)
-    optimistic_agent_result = optimistic_agent.act()
+    #optimistic_agent = OptimisticAgent(test_env,1,5,time)
+    #optimistic_agent_result = optimistic_agent.act()
 
     #ucb_agent = UCBAgent(test_env, 1,time)
     #ucb_agent_result = ucb_agent.act()
 
-    total_rewards = sum(optimistic_agent_result["rewards"])
+    bayes = ThompsonAgent(test_env,time)
+    bayes_result = bayes.act()
+
+    total_rewards = sum(bayes_result["rewards"])
     print(f"Total Reward : {total_rewards}")
     
     """
@@ -63,6 +65,7 @@ def test(time,total_budget):
             print(f'{campaign.id} has {campaign.roi} ROI')
 
     budget_printer(test_env.campaigns)
+    bayes.viz()
     return total_rewards
 
 
@@ -70,7 +73,7 @@ time_steps = 100
 total_budget = 5000
 results = []
 #MODEL TESTING
-iterations = 200
+iterations = 1
 for i in range(iterations):
     results.append(test(time_steps,total_budget))
 print(f"Showing results after {iterations} iterations. Best: {max(results)}, Worst: {min(results)}, Average: {Average(results)}")

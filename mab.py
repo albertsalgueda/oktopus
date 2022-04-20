@@ -1,5 +1,55 @@
 from main import *
 import numpy as np
+from scipy.stats import norm
+
+def plot(bandits, trial):
+  x = np.linspace(-3, 6, 200)
+  for b in bandits:
+    y = norm.pdf(x, b.m, np.sqrt(1. / b.lambda_))
+    plt.plot(x, y, label=f"real mean: {b.true_mean:.4f}, num plays: {b.N}")
+  plt.title(f"Bandit distributions after {trial} trials")
+  plt.legend()
+  plt.show()
+
+class Bandit:
+  def __init__(self, id,true_mean):
+    self.id = id
+    self.true_mean = true_mean
+    self.m = 0
+    self.lambda_ = 1
+    self.tau = 1
+    self.N = 0
+
+  def sample(self):
+    return np.random.randn() / np.sqrt(self.lambda_) + self.m
+
+  def update(self, x):
+    self.m = (self.tau * x + self.lambda_ * self.m) / (self.tau + self.lambda_)
+    self.lambda_ += self.tau
+    self.N += 1
+
+class ThompsonAgent(object):
+  def __init__(self,env,iterations):
+    self.env = env
+    self.bandits = [Bandit(arm,0) for arm in range(len(self.env.campaigns))]
+    self.rewards = [0.0]
+    self.cum_rewards = [0.0]
+    self.bandit_means = np.zeros(len(self.bandits))
+    self.iterations = iterations
+  
+  def act(self):
+    for i in range(self.iterations-1):
+      arm = np.argmax([b.sample() for b in self.bandits])
+      dec = np.argmin([b.sample() for b in self.bandits])
+      rewards = self.env.take_action(arm,dec)
+      for bandit in range(len(self.bandits)):
+        self.bandits[bandit].update(rewards[bandit])
+      #DYNAMIC TESTING 
+      self.env.dynamic()
+    return {"rewards": self.rewards, "cum_rewards": self.cum_rewards}
+
+  def viz(self):
+    plot(self.bandits,self.iterations)
 
 class SimulationAgent(object):
 
