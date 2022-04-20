@@ -132,6 +132,9 @@ class State(Campaign):
         self.next_timestamp()
         return rewards
 
+    def act3(self,arm):
+        pass
+    
     def act2(self,arm,q_values):
         """
         Given a chosen campaign, change budget distribution. 

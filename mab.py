@@ -1,14 +1,21 @@
 from main import *
 import numpy as np
+from scipy.stats import beta
 
 class ThompsonAgent(object):
 
     def __init__(self, env, c, max_iterations):
-        self.env = env
-        self.c = c
-        self.iterations = max_iterations
+      self.env = env
+      self.c = c
+      self.iterations = max_iterations
+      self.arm_alpha = np.zeros(self.env.k_arms)
+      self.arm_rewards = np.zeros(self.env.k_arms)
+
     def act(self):
-      pass
+      if self.env.current_time == 0:
+        arm = random.randint(0,len(self.arm_rewards))
+        reward = self.env.take_action(arm)
+      
 
 class SimulationAgent(object):
 
