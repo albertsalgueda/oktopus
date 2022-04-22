@@ -1,79 +1,139 @@
 from main import *
 import numpy as np
+from scipy.stats import norm
+
+def plot(bandits, trial):
+  x = np.linspace(-3, 6, 200)
+  for b in bandits:
+    y = norm.pdf(x, b.m, np.sqrt(1. / b.lambda_))
+    plt.plot(x, y, label=f"real mean: {b.true_mean:.4f}, num plays: {b.N}")
+  plt.title(f"Bandit distributions after {trial} trials")
+  plt.legend()
+  plt.show()
+
+class ThompsonCampaign(object):                #normal prior, normal likelihood
+    def __init__(self,id):
+      self.id = id                  
+      self.N = 1                               # Time step num
+      self.variance = 100                      # Flatten distributions
+      self.sum =  0                            # sum of ROAS across time steps
+      self.mean_estimate = 0                   # ROAS mean estimate
+
+    def sample(self):
+      """
+      Returns a random sample of the distribution
+      """
+      return np.random.randn() / np.sqrt(self.variance) + self.mean_estimate
+
+    def update(self, x):
+      """
+      x --> ROAS en un time step 
+      """
+      self.variance = pow((1/pow(100, 2) + self.N), -1)
+      self.sum += x
+      self.mean_estimate = self.variance * self.sum
+      self.N += 1
 
 class ThompsonAgent(object):
-
-    def __init__(self, env, c, max_iterations):
-        self.env = env
-        self.c = c
-        self.iterations = max_iterations
+    def __init__(self,env):
+      self.env = env
+      self.bandits = [ThompsonCampaign(arm) for arm in range(len(self.env.campaigns))]
+      self.cum_rewards = []
     def act(self):
-      pass
+      for i in range(self.env.time):
+        # update the data 
+        rewards = []
+        for i, campaign in enumerate(self.bandits):
+            campaign.update(self.env.campaigns[i].roi)
+            print(f'roi: {self.env.campaigns[i].roi}')
+            print(f'budget: {self.env.campaigns[i].budget}') 
+            rewards.append(float(self.env.campaigns[i].roi*self.env.campaigns[i].budget))
+        self.cum_rewards.append(sum(rewards))    
+        samples = [c.sample() for c in self.bandits]
+        distribution = [sample/sum(samples) for sample in samples]      #TODO: numeros negativos
+        # change env.budget_allocation & wait for rewards
+        self.env.update(distribution)
+        self.env.dynamic()
+        print(f'The rewards at timestamp {self.env.current_time} is {rewards}')
+        print(f'Budget distribution is {self.env.budget_allocation}')
+      return {"rewards": self.rewards, "cum_rewards": self.cum_rewards}
+             
+
+class Bandit(object):
+  def __init__(self, id,true_mean):
+    self.id = id
+    self.true_mean = true_mean
+    self.m = 0
+    self.lambda_ = 1
+    self.tau = 1
+    self.N = 0
+
+  def sample(self):
+    return np.random.randn() / np.sqrt(self.lambda_) + self.m
+
+  def update(self, x):
+    self.m = (self.tau * x + self.lambda_ * self.m) / (self.tau + self.lambda_)
+    self.lambda_ += self.tau
+    self.N += 1
+
+class Bayes(object):
+  def __init__(self,env,iterations):
+    self.env = env
+    self.bandits = [Bandit(arm,0) for arm in range(len(self.env.campaigns))]
+    self.rewards = [0.0]
+    self.cum_rewards = [0.0]
+    self.bandit_means = np.zeros(len(self.bandits))
+    self.iterations = iterations
+  
+  def act(self):
+    for i in range(self.iterations-1):
+      arm = np.argmax([b.sample() for b in self.bandits])
+      dec = np.argmin([b.sample() for b in self.bandits])
+      rewards = self.env.take_action(arm,dec)
+      for bandit in range(len(self.bandits)):
+        self.bandits[bandit].update(rewards[bandit])
+      #DYNAMIC TESTING 
+      self.env.dynamic()
+    return {"rewards": self.rewards, "cum_rewards": self.cum_rewards}
+
+  def viz(self):
+    plot(self.bandits,self.iterations)
 
 class SimulationAgent(object):
 
-  def __init__(self, env, initial_q, initial_visits):
-    self.env = env                                                    # pass State() instance
-    self.initial_q = initial_q                                        # Initial Q_values [ How optimistic do you want to be? ]
-    self.initial_visits = initial_visits                              # Initial visits 
-    ### memory... 
+  def __init__(self, env, initial_q, initial_visits, max_iterations):
+    self.env = env
+    self.iterations = max_iterations
+    self.initial_q = initial_q
+    self.initial_visits = initial_visits
+
     self.q_values = np.ones(self.env.k_arms) * self.initial_q
     self.arm_counts = np.ones(self.env.k_arms) * self.initial_visits
     self.arm_rewards = np.zeros(self.env.k_arms)
-
-  def act(self):
-    """
-    implement optimized optimistic algorithm 
-    """
-    ### we choose an arm. 
-    arm = np.argmax(self.q_values)
-    print(self.q_values)
-    ### we get rewards from the environment  
-    reward = self.env.take_action(arm,self.q_values)
-    print(f'The rewards at timestamp {self.env.current_time} is {reward}')
-    #we sum 1 to arm counts
-    self.arm_counts[arm] = self.arm_counts[arm] + 1
-
-    #assign rewards for all arms
-    for arm in range(self.env.k_arms):
-      #update data 
-      self.arm_rewards[arm] = self.arm_rewards[arm] + reward[arm]
-      self.q_values[arm] = self.q_values[arm] + (1/self.arm_counts[arm]) * (reward[arm] - self.q_values[arm])
-
-class AI(object):
-
-  def __init__(self, env, tau=1):
-    self.env = env
-    self.tau = tau
-    """
-    For high tau ( temperature ), all actions have nearly same probability.
-    The lower the temperature,  the more expected rewards affect the probability, the probability of the action with the highest expected reward tends to 1.
-    """
-    self.action_probas = np.zeros(self.env.k_arms)
-    self.q_values = np.zeros(self.env.k_arms)
-    self.arm_counts = np.ones(self.env.k_arms)
-    self.arm_rewards = np.zeros(self.env.k_arms)
     
     self.rewards = [0.0]
-    self.cum_rewards = [0.0]  
+    self.cum_rewards = [0.0]
 
   def act(self):
-    self.action_probas = np.exp(self.q_values/self.tau) / np.sum(np.exp(self.q_values/self.tau))
-    arm = np.random.choice(self.env.k_arms, p=self.action_probas)
+    count = 0
+    old_estimate = 0.0
+    arm = np.argmax(self.q_values)
     reward = self.env.take_action(arm,self.q_values)
     print(f'The rewards at timestamp {self.env.current_time} is {reward}')
     #sum one to the arm that was choosen 
     self.arm_counts[arm] = self.arm_counts[arm] + 1
     #assign rewards for all arms
     for arm in range(self.env.k_arms):
-      self.arm_rewards[arm] += reward[arm]
+      self.arm_rewards[arm] = self.arm_rewards[arm] + reward[arm]
       self.q_values[arm] = self.q_values[arm] + (1/self.arm_counts[arm]) * (reward[arm] - self.q_values[arm])
-
+    #print(self.q_values)
     self.rewards.append(sum(reward))
-    self.cum_rewards.append(sum(self.rewards) / len(self.rewards))
+    count += 1
+    current_estimate = old_estimate + (1/count)*(sum(reward)-old_estimate)
+    self.cum_rewards.append(current_estimate)
+    old_estimate = current_estimate
 
     return {"arm_counts": self.arm_counts, "rewards": self.rewards, "cum_rewards": self.cum_rewards}
-
 
 class EpsilonGreedyAgent(object):
 

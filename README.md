@@ -1,4 +1,4 @@
-# Budget Optimization
+# oktopus
 
 Learn more about the product:
 https://docs.google.com/document/d/14iqCfNMIAbF44LzbyZDvIrgHMJMyPsDKeVkzDj9-Dp4/edit?usp=sharing
