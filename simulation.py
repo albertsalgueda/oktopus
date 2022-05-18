@@ -37,7 +37,7 @@ while campaign_group.remaining > 0:
     print('#############################################')
     print(f'Budget at timestamp {campaign_group.current_time} is {campaign_group.current_budget}')
     budget_printer(campaign_group)
-    action = optimistic_agent.act()
+    action = optimistic_agent.act() # /next
     for campaign in campaign_group.campaigns:
         print(f'Introduce new data for campaign {campaign.id}')
         data = str(input("new Impresions, new Conversions and new ROI respectively separated with a comma: "))

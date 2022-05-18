@@ -73,7 +73,7 @@ time_steps = 100
 total_budget = 5000
 results = []
 #MODEL TESTING
-iterations = 1
+iterations = 100
 for i in range(iterations):
     results.append(test(time_steps,total_budget))
 print(f"Showing results after {iterations} iterations. Best: {max(results)}, Worst: {min(results)}, Average: {Average(results)}")
