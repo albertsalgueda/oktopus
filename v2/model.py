@@ -1,17 +1,23 @@
+"""
+This file contains the modeling for predicting cost curves.
+"""
+
 import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+
 np.set_printoptions(precision=3, suppress=True)
 
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import  layers
 
-from utils import plot_train, plot_pred, derivative
+from utils import recomendation_printer, plot_pred
 
 # Load a dataset in a Pandas dataframe.
-train_df = pd.read_csv("data/train.csv")
+data_path = "data/train.csv"
+train_df = pd.read_csv(data_path)
 test_df = pd.read_csv("data/test.csv")
 train_labels = train_df.pop('Payout')
 
@@ -47,12 +53,6 @@ hist = pd.DataFrame(training.history)
 hist['epoch'] = training.epoch
 hist.tail()
 
-x = tf.linspace(0,30,20)
-y = model.predict(x)
-
-print(derivative(model, 3))
-print(derivative(model, 4))
-print(derivative(model, 5))
-
-#plot_pred(x,y,train_df,train_labels)
+#plot_pred(model,data_path)
+recomendation_printer(model,data_path,10)
 print('Program finished with sucess')
