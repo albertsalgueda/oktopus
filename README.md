@@ -9,9 +9,4 @@ https://docs.google.com/document/d/1DvaXxT_dvtagCdXrY_2Tvfk1iyxKew9YGt81FSEpMAU/
 Find all tests conducted in: 
 https://docs.google.com/spreadsheets/d/1Lpk_ghdy2BVCa0Fx-f-GZ4uXtpHgqUwtlLBS_OOy2yw/edit?usp=sharing
 
-| Plan | Features | Price |
-|------|----------|-------|
-| Free | Basic AI functionality | $0/month |
-| Basic | Basic AI functionality + Custom models | $50/month |
-| Standard | Basic AI functionality + Custom models + Advanced analytics | $100/month |
-| Premium | Basic AI functionality + Custom models + Advanced analytics + Priority support | $200/month | 
+| 
